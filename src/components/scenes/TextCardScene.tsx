@@ -69,6 +69,11 @@ export const TextCardScene: React.FC<TextCardSceneProps> = ({ scene, template, v
         </AbsoluteFill>
       )}
 
+      {/* 内容可读性渐变遮罩（中心稍暗，边缘透明，让背景动画可见） */}
+      <AbsoluteFill style={{
+        background: `radial-gradient(ellipse at center, ${template.bg_color}aa 0%, ${template.bg_color}66 40%, transparent 70%)`,
+      }} />
+
       {/* 主内容 */}
       <AbsoluteFill style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',

@@ -19,7 +19,29 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({ script, audi
     return <AbsoluteFill style={{ backgroundColor: '#000' }} />;
   }
 
-  const template = getTemplate(script.template);
+  // 合并 script.global_style 与 template 配置（脚本颜色覆盖模板默认值）
+  const baseTemplate = getTemplate(script.template);
+  const bgColor = script.global_style?.bg_color || baseTemplate.bg_color;
+  const isDarkBg = (() => {
+    const hex = bgColor.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    return (r * 0.299 + g * 0.587 + b * 0.114) / 255 < 0.5;
+  })();
+  const template = {
+    ...baseTemplate,
+    bg_color: bgColor,
+    text_color: script.global_style?.text_color || baseTemplate.text_color,
+    primary_color: script.global_style?.primary_color || baseTemplate.primary_color,
+    accent_color: script.global_style?.accent_color || baseTemplate.accent_color,
+    title_font: script.global_style?.font_family || baseTemplate.title_font,
+    body_font: script.global_style?.font_family || baseTemplate.body_font,
+    // 深色背景时适配卡片颜色（半透明让背景动画透出）
+    card_bg: isDarkBg ? `${bgColor}cc` : baseTemplate.card_bg,
+    card_border: isDarkBg ? `${script.global_style?.primary_color || baseTemplate.primary_color}44` : baseTemplate.card_border,
+    shadow: isDarkBg ? '0 8px 32px rgba(0,0,0,0.4)' : baseTemplate.shadow,
+  };
 
   // Build runtime scenes with audio data
   const scenes: SceneRuntime[] = script.scenes.map((scene) => {

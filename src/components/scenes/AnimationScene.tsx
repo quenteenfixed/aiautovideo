@@ -37,6 +37,11 @@ export const AnimationScene: React.FC<AnimationSceneProps> = ({ scene, template,
         seed={scene.scene_id || 1}
       />
 
+      {/* 内容可读性渐变遮罩 */}
+      <AbsoluteFill style={{
+        background: `radial-gradient(ellipse at center, ${template.bg_color}aa 0%, ${template.bg_color}66 40%, transparent 70%)`,
+      }} />
+
       <AbsoluteFill style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         opacity: opacity * exitOpacity,

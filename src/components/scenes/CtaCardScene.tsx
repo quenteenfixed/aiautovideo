@@ -54,6 +54,11 @@ export const CtaCardScene: React.FC<CtaCardSceneProps> = ({ scene, template, vis
         seed={scene.scene_id || 999}
       />
 
+      {/* 内容可读性渐变遮罩 */}
+      <AbsoluteFill style={{
+        background: `radial-gradient(ellipse at center, ${template.bg_color}aa 0%, ${template.bg_color}66 40%, transparent 70%)`,
+      }} />
+
       {/* CTA 内容 */}
       <AbsoluteFill style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',

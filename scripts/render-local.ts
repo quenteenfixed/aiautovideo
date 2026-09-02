@@ -203,17 +203,71 @@ export async function renderLocal(options: RenderOptions): Promise<string> {
   logger.info('使用系统 ffmpeg 合并音频...');
 
   // 构建音频列表（按场景顺序）
-  const audioFiles: { file: string; delay: number; duration: number }[] = [];
+  const audioFiles: { file: string; delay: number; duration: number; volume?: number }[] = [];
   let cumulativeDelay = 0;
 
+  const sfxDir = path.join(process.cwd(), 'public', 'sfx');
+  const hasSfx = await fs.stat(sfxDir).then(() => true).catch(() => false);
+
   const sortedScenes = [...script.scenes].sort((a, b) => a.scene_id - b.scene_id);
-  for (const scene of sortedScenes) {
+  for (let idx = 0; idx < sortedScenes.length; idx++) {
+    const scene = sortedScenes[idx];
     const audio = audioResults[scene.scene_id];
+
+    // 剪映风格多层音效系统
+    if (hasSfx) {
+      const visualType = (scene.visual as any)?.type;
+      const sceneDelay = cumulativeDelay;
+
+      // === 第一场景：进场音效（盛大入场） ===
+      if (idx === 0) {
+        audioFiles.push({ file: path.join(sfxDir, 'swoosh_in.wav'), delay: 0, duration: 0.25, volume: 0.25 });
+        audioFiles.push({ file: path.join(sfxDir, 'bell.wav'), delay: 0.1, duration: 1.0, volume: 0.15 });
+      }
+
+      // === 后续场景：转场音效 ===
+      if (idx > 0 && cumulativeDelay > 0) {
+        // 前驱音效（提前出现，营造期待感）
+        const riserDelay = Math.max(0, sceneDelay - 0.8);
+        if (visualType === 'chart' || visualType === 'cta_card') {
+          audioFiles.push({ file: path.join(sfxDir, 'riser.wav'), delay: riserDelay, duration: 1.1, volume: 0.12 });
+        } else if (visualType === 'animation') {
+          audioFiles.push({ file: path.join(sfxDir, 'sweep_down.wav'), delay: riserDelay, duration: 0.4, volume: 0.1 });
+        }
+
+        // 主转场音效（根据视觉类型匹配）
+        if (visualType === 'chart') {
+          // 数据场景：电影重击 + 低音下潜（戏剧性数据揭示）
+          audioFiles.push({ file: path.join(sfxDir, 'cinematic_hit.wav'), delay: sceneDelay, duration: 1.2, volume: 0.25 });
+          audioFiles.push({ file: path.join(sfxDir, 'bass_drop.wav'), delay: sceneDelay + 0.05, duration: 1.0, volume: 0.15 });
+        } else if (visualType === 'cta_card') {
+          // CTA 场景：清脆铃声 + 闪烁（引导关注）
+          audioFiles.push({ file: path.join(sfxDir, 'bell.wav'), delay: sceneDelay, duration: 1.0, volume: 0.2 });
+          audioFiles.push({ file: path.join(sfxDir, 'shimmer.wav'), delay: sceneDelay + 0.1, duration: 0.6, volume: 0.18 });
+        } else if (visualType === 'animation') {
+          // 动画场景：故障音 + 转场扫频（科技感）
+          audioFiles.push({ file: path.join(sfxDir, 'glitch.wav'), delay: sceneDelay, duration: 0.3, volume: 0.15 });
+          audioFiles.push({ file: path.join(sfxDir, 'transition.wav'), delay: sceneDelay, duration: 0.3, volume: 0.18 });
+        } else if (visualType === 'image') {
+          // 图片场景：相机快门声
+          audioFiles.push({ file: path.join(sfxDir, 'camera_shutter.wav'), delay: sceneDelay, duration: 0.15, volume: 0.22 });
+        } else {
+          // 文字场景：快速进场呼啸 + 弹出（节奏感）
+          audioFiles.push({ file: path.join(sfxDir, 'swoosh_in.wav'), delay: sceneDelay, duration: 0.25, volume: 0.2 });
+          audioFiles.push({ file: path.join(sfxDir, 'pop.wav'), delay: sceneDelay + 0.05, duration: 0.08, volume: 0.12 });
+        }
+
+        // 节奏辅助音效：tick（每场景切换添加细微脆响）
+        audioFiles.push({ file: path.join(sfxDir, 'tick.wav'), delay: sceneDelay, duration: 0.03, volume: 0.06 });
+      }
+    }
+
     if (audio && audio.audio_file) {
       audioFiles.push({
         file: path.resolve(audio.audio_file),
         delay: cumulativeDelay,
         duration: audio.audio_duration,
+        volume: 1.0,
       });
     }
     cumulativeDelay += audio
@@ -223,10 +277,19 @@ export async function renderLocal(options: RenderOptions): Promise<string> {
 
   // Outro 音频
   if (outroAudio && outroAudio.audio_file) {
+    // Outro: 心跳 + 低音下潜 + 铃声（戏剧性结尾）
+    if (hasSfx) {
+      const outroDelay = cumulativeDelay;
+      audioFiles.push({ file: path.join(sfxDir, 'heartbeat.wav'), delay: Math.max(0, outroDelay - 1.5), duration: 0.8, volume: 0.12 });
+      audioFiles.push({ file: path.join(sfxDir, 'riser.wav'), delay: Math.max(0, outroDelay - 0.8), duration: 1.1, volume: 0.13 });
+      audioFiles.push({ file: path.join(sfxDir, 'bass_drop.wav'), delay: outroDelay, duration: 1.0, volume: 0.18 });
+      audioFiles.push({ file: path.join(sfxDir, 'bell.wav'), delay: outroDelay + 0.1, duration: 1.0, volume: 0.2 });
+    }
     audioFiles.push({
       file: path.resolve(outroAudio.audio_file),
       delay: cumulativeDelay,
       duration: outroAudio.audio_duration,
+      volume: 1.0,
     });
   }
 
@@ -299,24 +362,34 @@ export async function renderLocal(options: RenderOptions): Promise<string> {
   return outputFile;
 }
 
-// 方法1: filter_complex 一次性合并
+// 方法1: filter_complex 一次性合并（使用 apad 保持音轨数恒定，修复尾部音量暴涨）
 async function tryMergeAllAudio(
   videoPath: string,
-  audioFiles: { file: string; delay: number; duration: number }[],
+  audioFiles: { file: string; delay: number; duration: number; volume?: number }[],
   outputPath: string,
   logger: Logger
 ): Promise<boolean> {
   const inputArgs: string[] = ['-i', `"${videoPath}"`];
   const filterParts: string[] = [];
 
+  // 计算总时长，用于 apad 填充所有音轨到统一长度
+  // 这样 amix 的归一化因子恒定为 1/N，volume=N 补偿始终正确
+  const totalDuration = Math.ceil(Math.max(...audioFiles.map(af => af.delay + af.duration)));
+
   audioFiles.forEach((af, i) => {
     inputArgs.push('-i', `"${af.file}"`);
     const delayMs = Math.round(af.delay * 1000);
-    filterParts.push(`[${i + 1}:a]adelay=${delayMs}|${delayMs}[a${i + 1}]`);
+    const vol = af.volume ?? 1.0;
+    // adelay → volume → apad（填充到总时长，保持音轨始终活跃）
+    filterParts.push(`[${i + 1}:a]adelay=${delayMs}|${delayMs},volume=${vol},apad=whole_dur=${totalDuration}[a${i + 1}]`);
   });
 
   const mixInputs = audioFiles.map((_, i) => `[a${i + 1}]`).join('');
-  const filterComplex = `${filterParts.join(';')};${mixInputs}amix=inputs=${audioFiles.length}:duration=longest:dropout_transition=0:normalize=0[aout]`;
+  const n = audioFiles.length;
+  // FFmpeg 4.3 不支持 normalize=0，用 apad + volume=N 补偿
+  // apad 确保所有 N 个音轨始终活跃，amix 归一化因子恒定为 1/N
+  // alimiter 防止多轨叠加时削波
+  const filterComplex = `${filterParts.join(';')};${mixInputs}amix=inputs=${n}:duration=longest:dropout_transition=0[amixout];[amixout]volume=${n},alimiter=limit=0.95[aout]`;
 
   const ffmpegCmd = [
     `"${BIN.ffmpeg}"`, '-y',
@@ -361,10 +434,14 @@ async function tryMergeAllAudio(
 // 方法2: concat 方式合并（先拼接音频再合并到视频）
 async function tryConcatAudio(
   videoPath: string,
-  audioFiles: { file: string; delay: number; duration: number }[],
+  audioFiles: { file: string; delay: number; duration: number; volume?: number }[],
   outputPath: string,
   logger: Logger
 ): Promise<boolean> {
+  // concat 方式无法处理重叠音效，只使用 TTS 音频（跳过 SFX）
+  const ttsFiles = audioFiles.filter(af => (af.volume ?? 1.0) >= 1.0);
+  if (ttsFiles.length === 0) return false;
+
   const tempDir = path.dirname(videoPath);
   const concatListPath = path.join(tempDir, 'audio_concat.txt');
 
@@ -372,7 +449,7 @@ async function tryConcatAudio(
   const segments: string[] = [];
   let prevEnd = 0;
 
-  for (const af of audioFiles) {
+  for (const af of ttsFiles) {
     // 如果有间隙，用静音填充
     if (af.delay > prevEnd) {
       const silenceDuration = af.delay - prevEnd;
@@ -451,14 +528,16 @@ async function tryConcatAudio(
 // 方法3: 逐个添加音频（备用方案）
 async function addAudioOneByOne(
   videoPath: string,
-  audioFiles: { file: string; delay: number; duration: number }[],
+  audioFiles: { file: string; delay: number; duration: number; volume?: number }[],
   outputPath: string,
   logger: Logger
 ): Promise<void> {
+  // 逐个添加方式只使用 TTS 音频（跳过 SFX）
+  const ttsFiles = audioFiles.filter(af => (af.volume ?? 1.0) >= 1.0);
   let currentVideo = videoPath;
 
-  for (let i = 0; i < audioFiles.length; i++) {
-    const af = audioFiles[i];
+  for (let i = 0; i < ttsFiles.length; i++) {
+    const af = ttsFiles[i];
     const tempOutput = videoPath.replace('.mp4', `_step${i}.mp4`);
     const delayMs = Math.round(af.delay * 1000);
 
@@ -476,7 +555,7 @@ async function addAudioOneByOne(
       `"${tempOutput}"`,
     ].join(' ');
 
-    logger.info(`添加音频 ${i + 1}/${audioFiles.length} (延迟 ${delayMs}ms)...`);
+    logger.info(`添加音频 ${i + 1}/${ttsFiles.length} (延迟 ${delayMs}ms)...`);
 
     try {
       await execAsync(cmd, { maxBuffer: 50 * 1024 * 1024, timeout: 120000 });

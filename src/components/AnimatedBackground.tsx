@@ -59,35 +59,35 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
   const slowT = t * 0.15;
 
   // ===== 预生成粒子/星星数据（确定性随机） =====
-  const stars = useMemo(() => Array.from({ length: 150 }, (_, i) => ({
+  const stars = useMemo(() => Array.from({ length: 220 }, (_, i) => ({
     x: random(`${seed}-sx-${i}`) * 100,
     y: random(`${seed}-sy-${i}`) * 100,
-    size: random(`${seed}-ss-${i}`) * 2.5 + 0.5,
+    size: random(`${seed}-ss-${i}`) * 5 + 2,
     speed: random(`${seed}-sp-${i}`) * 0.4 + 0.1,
     twinkle: random(`${seed}-st-${i}`) * 360,
-    depth: random(`${seed}-sd-${i}`), // 0=远 1=近
+    depth: random(`${seed}-sd-${i}`),
     color: i % 4 === 0 ? accentColor : i % 7 === 0 ? primaryColor : '#ffffff',
   })), [seed]);
 
-  const particles = useMemo(() => Array.from({ length: 80 }, (_, i) => ({
+  const particles = useMemo(() => Array.from({ length: 120 }, (_, i) => ({
     x: random(`${seed}-px-${i}`) * 100,
     y: random(`${seed}-py-${i}`) * 100,
-    size: random(`${seed}-ps-${i}`) * 4 + 1,
+    size: random(`${seed}-ps-${i}`) * 9 + 3,
     vx: (random(`${seed}-pvx-${i}`) - 0.5) * 0.2,
     vy: (random(`${seed}-pvy-${i}`) - 0.5) * 0.2,
-    opacity: random(`${seed}-po-${i}`) * 0.6 + 0.2,
+    opacity: random(`${seed}-po-${i}`) * 0.4 + 0.5,
     depth: random(`${seed}-pd-${i}`),
   })), [seed]);
 
-  const bokeh = useMemo(() => Array.from({ length: 20 }, (_, i) => ({
+  const bokeh = useMemo(() => Array.from({ length: 30 }, (_, i) => ({
     x: random(`${seed}-bx-${i}`) * 100,
     y: random(`${seed}-by-${i}`) * 100,
-    size: random(`${seed}-bs-${i}`) * 120 + 40,
+    size: random(`${seed}-bs-${i}`) * 200 + 80,
     driftX: random(`${seed}-bdx-${i}`) * 40 + 10,
     driftY: random(`${seed}-bdy-${i}`) * 30 + 8,
     pulseSpeed: random(`${seed}-bps-${i}`) * 0.5 + 0.2,
     pulsePhase: random(`${seed}-bpp-${i}`) * Math.PI * 2,
-    opacity: random(`${seed}-bo-${i}`) * 0.15 + 0.05,
+    opacity: random(`${seed}-bo-${i}`) * 0.25 + 0.15,
     colorIdx: i % 3,
   })), [seed]);
 
@@ -123,19 +123,19 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
     const rotation = slowT * 5;
     const warpSpeed = interpolate(t, [0, 3, 6, 10], [0, 0.5, 1, 0.8]);
     return (
-      <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      <AbsoluteFill style={{ overflow: 'hidden' }}>
         {/* 旋转星空层（远） */}
         <AbsoluteFill style={{ transform: `rotate(${rotation * 0.3}deg)`, transformOrigin: 'center' }}>
           {stars.filter(s => s.depth < 0.4).map((s, i) => {
             const twinkle = Math.sin((t * s.twinkle + i * 30) * Math.PI / 180);
-            const opacity = 0.2 + twinkle * 0.4;
+            const opacity = 0.4 + twinkle * 0.5;
             const yPos = (s.y + t * s.speed * 5) % 100;
             return (
               <div key={i} style={{
                 position: 'absolute', left: `${s.x}%`, top: `${yPos}%`,
                 width: s.size, height: s.size, borderRadius: '50%',
                 backgroundColor: s.color, opacity,
-                boxShadow: `0 0 ${s.size * 4}px ${s.color}`,
+                boxShadow: `0 0 ${s.size * 6}px ${s.color}`,
               }} />
             );
           })}
@@ -144,7 +144,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
         <AbsoluteFill style={{ transform: `rotate(${-rotation * 0.6}deg)`, transformOrigin: 'center' }}>
           {stars.filter(s => s.depth >= 0.4).map((s, i) => {
             const twinkle = Math.sin((t * s.twinkle + i * 50) * Math.PI / 180);
-            const opacity = 0.3 + twinkle * 0.6;
+            const opacity = 0.5 + twinkle * 0.5;
             const yPos = (s.y + t * s.speed * 15) % 100;
             const scaleVal = 1 + warpSpeed * s.depth * 2;
             return (
@@ -152,7 +152,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
                 position: 'absolute', left: `${s.x}%`, top: `${yPos}%`,
                 width: s.size * scaleVal, height: s.size * scaleVal * (1 + warpSpeed * 3),
                 borderRadius: '50%', backgroundColor: s.color, opacity,
-                boxShadow: `0 0 ${s.size * 6}px ${s.color}`,
+                boxShadow: `0 0 ${s.size * 8}px ${s.color}`,
               }} />
             );
           })}
@@ -167,15 +167,15 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
             <div key={i} style={{
               position: 'absolute', left: `${driftX}%`, top: `${driftY}%`,
               width: c.size, height: c.size, borderRadius: '50%',
-              background: `radial-gradient(circle, ${hexToRgba(colors[c.colorIdx], 0.12)} 0%, ${hexToRgba(colors[c.colorIdx], 0.04)} 30%, transparent 70%)`,
+              background: `radial-gradient(circle, ${hexToRgba(colors[c.colorIdx], 0.25)} 0%, ${hexToRgba(colors[c.colorIdx], 0.08)} 30%, transparent 70%)`,
               transform: `translate(-50%, -50%) scale(${pulseScale})`,
-              filter: 'blur(30px)',
+              filter: 'blur(25px)',
             }} />
           );
         })}
         {/* 中心光晕 */}
         <AbsoluteFill style={{
-          background: `radial-gradient(circle at 50% 40%, ${hexToRgba(accentColor, 0.08)} 0%, ${hexToRgba(primaryColor, 0.04)} 30%, transparent 70%)`,
+          background: `radial-gradient(circle at 50% 40%, ${hexToRgba(accentColor, 0.15)} 0%, ${hexToRgba(primaryColor, 0.08)} 30%, transparent 70%)`,
         }} />
         {/* 流星 */}
         {[0, 1, 2, 3].map(i => {
@@ -206,12 +206,12 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
     const lightningCycle = (t * 0.4 + seed * 0.3) % 6;
     const flash = lightningCycle < 0.2 ? interpolate(lightningCycle, [0, 0.08, 0.2], [0, 0.5, 0]) : 0;
     return (
-      <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      <AbsoluteFill style={{ overflow: 'hidden' }}>
         {/* 多层移动云 */}
         {[0, 1, 2, 3].map(layer => (
           <AbsoluteFill key={layer} style={{
-            backgroundImage: `radial-gradient(ellipse at ${15 + layer * 25 + cloudOffset * (layer + 1) * 0.2}% ${25 + layer * 18}%, ${hexToRgba(primaryColor, layer === 0 ? 0.15 : 0.08)} 0%, transparent 50%)`,
-            opacity: 0.6 - layer * 0.12,
+            backgroundImage: `radial-gradient(ellipse at ${15 + layer * 25 + cloudOffset * (layer + 1) * 0.2}% ${25 + layer * 18}%, ${hexToRgba(primaryColor, layer === 0 ? 0.25 : 0.12)} 0%, transparent 50%)`,
+            opacity: 0.7 - layer * 0.12,
           }} />
         ))}
         {/* 闪电 */}
@@ -252,10 +252,10 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
   // ============================================================
   if (type === 'ocean') {
     return (
-      <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      <AbsoluteFill style={{ overflow: 'hidden' }}>
         {/* 深海渐变 */}
         <AbsoluteFill style={{
-          background: `linear-gradient(180deg, ${bgColor} 0%, ${hexToRgba(primaryColor, 0.06)} 40%, ${hexToRgba(primaryColor, 0.15)} 100%)`,
+          background: `linear-gradient(180deg, ${hexToRgba(bgColor, 0.3)} 0%, ${hexToRgba(primaryColor, 0.06)} 40%, ${hexToRgba(primaryColor, 0.15)} 100%)`,
         }} />
         {/* 多层波浪 */}
         {[0, 1, 2, 3].map(layer => {
@@ -263,7 +263,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
           const waveY = 35 + layer * 14 + waveOffset;
           const colors = [accentColor, primaryColor, accentColor, primaryColor];
           return (
-            <svg key={layer} style={{ position: 'absolute', bottom: 0, width: '100%', height: '65%', opacity: 0.35 - layer * 0.07 }}>
+            <svg key={layer} style={{ position: 'absolute', bottom: 0, width: '100%', height: '65%', opacity: 0.5 - layer * 0.08 }}>
               <defs>
                 <linearGradient id={`og-${layer}`} x1="0%" y1="0%" x2="0%" y2="100%">
                   <stop offset="0%" stopColor={colors[layer]} stopOpacity={0.6} />
@@ -313,7 +313,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
   // ============================================================
   if (type === 'particles') {
     return (
-      <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      <AbsoluteFill style={{ overflow: 'hidden' }}>
         {/* 粒子 */}
         {particles.map((p, i) => {
           const noiseX = noise3D(`px-${seed}-${i}`, p.x / 10, p.y / 10, t * 0.1);
@@ -363,12 +363,12 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
     const gridShift = (t * 12) % 40;
     const scanY = (gridShift / 40) * 100;
     return (
-      <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      <AbsoluteFill style={{ overflow: 'hidden' }}>
         {/* 脉冲网格 */}
         <AbsoluteFill style={{
           backgroundImage: `linear-gradient(${hexToRgba(primaryColor, 0.12)} 1px, transparent 1px), linear-gradient(90deg, ${hexToRgba(primaryColor, 0.12)} 1px, transparent 1px)`,
           backgroundSize: '40px 40px', transform: `scale(${pulseScale})`,
-          opacity: interpolate(pulseT, [0, 1, 2.5], [0.12, 0.28, 0.12]),
+          opacity: interpolate(pulseT, [0, 1, 2.5], [0.2, 0.45, 0.2]),
         }} />
         {/* 扫描线 */}
         <div style={{
@@ -408,7 +408,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
   // ============================================================
   if (type === 'nebula') {
     return (
-      <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      <AbsoluteFill style={{ overflow: 'hidden' }}>
         {nebulaClouds.map((c, i) => {
           const noiseDriftX = noise3D(`nx-${seed}-${i}`, c.x / 10, c.y / 10, t * 0.05);
           const noiseDriftY = noise3D(`ny-${seed}-${i}`, c.x / 10, c.y / 10, t * 0.05);
@@ -420,8 +420,8 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
             <div key={i} style={{
               position: 'absolute', left: `${driftX}%`, top: `${driftY}%`,
               width: c.size, height: c.size, borderRadius: '50%',
-              background: `radial-gradient(circle, ${hexToRgba(colors[c.colorIdx], 0.12)} 0%, ${hexToRgba(colors[c.colorIdx], 0.04)} 30%, transparent 70%)`,
-              transform: `translate(-50%, -50%) scale(${pulseScale})`, filter: 'blur(25px)',
+              background: `radial-gradient(circle, ${hexToRgba(colors[c.colorIdx], 0.2)} 0%, ${hexToRgba(colors[c.colorIdx], 0.06)} 30%, transparent 70%)`,
+              transform: `translate(-50%, -50%) scale(${pulseScale})`, filter: 'blur(20px)',
             }} />
           );
         })}
@@ -463,10 +463,10 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
   if (type === 'bokeh') {
     const colors = [primaryColor, accentColor, primaryColor];
     return (
-      <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      <AbsoluteFill style={{ overflow: 'hidden' }}>
         {/* 渐变底色 */}
         <AbsoluteFill style={{
-          background: `linear-gradient(${135 + slowT * 20}deg, ${hexToRgba(primaryColor, 0.08)} 0%, ${hexToRgba(accentColor, 0.05)} 50%, ${bgColor} 100%)`,
+          background: `linear-gradient(${135 + slowT * 20}deg, ${hexToRgba(primaryColor, 0.08)} 0%, ${hexToRgba(accentColor, 0.05)} 50%, ${hexToRgba(bgColor, 0.3)} 100%)`,
         }} />
         {/* Bokeh 光圈 */}
         {bokeh.map((b, i) => {
@@ -502,9 +502,9 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
   // ============================================================
   if (type === 'matrix') {
     return (
-      <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      <AbsoluteFill style={{ overflow: 'hidden' }}>
         {/* 渐变底色 */}
-        <AbsoluteFill style={{ background: `linear-gradient(180deg, ${hexToRgba(primaryColor, 0.05)} 0%, ${bgColor} 50%, ${hexToRgba(accentColor, 0.03)} 100%)` }} />
+        <AbsoluteFill style={{ background: `linear-gradient(180deg, ${hexToRgba(primaryColor, 0.05)} 0%, ${hexToRgba(bgColor, 0.3)} 50%, ${hexToRgba(accentColor, 0.03)} 100%)` }} />
         {matrixCols.map((col, i) => {
           const y = (col.startY + frame * col.speed) % (height + 200) - 100;
           const charsShown = 15;
@@ -529,7 +529,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
           );
         })}
         {/* 底部渐隐 */}
-        <AbsoluteFill style={{ background: `linear-gradient(0deg, ${bgColor} 0%, transparent 30%)` }} />
+        <AbsoluteFill style={{ background: `linear-gradient(0deg, ${hexToRgba(bgColor, 0.3)} 0%, transparent 30%)` }} />
       </AbsoluteFill>
     );
   }
@@ -539,7 +539,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
   // ============================================================
   if (type === 'aurora') {
     return (
-      <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      <AbsoluteFill style={{ overflow: 'hidden' }}>
         {/* 底层星空 */}
         {stars.slice(0, 40).map((s, i) => (
           <div key={i} style={{
@@ -583,10 +583,10 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
   // ============================================================
   if (type === 'geometric') {
     return (
-      <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      <AbsoluteFill style={{ overflow: 'hidden' }}>
         {/* 渐变底色 */}
         <AbsoluteFill style={{
-          background: `linear-gradient(${45 + slowT * 15}deg, ${hexToRgba(primaryColor, 0.06)} 0%, ${hexToRgba(accentColor, 0.04)} 50%, ${bgColor} 100%)`,
+          background: `linear-gradient(${45 + slowT * 15}deg, ${hexToRgba(primaryColor, 0.06)} 0%, ${hexToRgba(accentColor, 0.04)} 50%, ${hexToRgba(bgColor, 0.3)} 100%)`,
         }} />
         {/* 递归几何层 */}
         {geoLayers.map((layer, i) => {
@@ -629,7 +629,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
   // ============================================================
   if (type === 'flowfield') {
     return (
-      <AbsoluteFill style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+      <AbsoluteFill style={{ overflow: 'hidden' }}>
         {/* 流场粒子 */}
         {particles.slice(0, 60).map((p, i) => {
           const noiseVal = noise3D(`ff-${seed}-${i}`, p.x / 8, p.y / 8, t * 0.12);
@@ -675,7 +675,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
   // 默认：渐变背景
   return (
     <AbsoluteFill style={{
-      background: `linear-gradient(${135 + slowT * 10}deg, ${bgColor} 0%, ${hexToRgba(primaryColor, 0.06)} 50%, ${hexToRgba(accentColor, 0.03)} 100%)`,
+      background: `linear-gradient(${135 + slowT * 10}deg, ${hexToRgba(bgColor, 0.3)} 0%, ${hexToRgba(primaryColor, 0.06)} 50%, ${hexToRgba(accentColor, 0.03)} 100%)`,
     }} />
   );
 };

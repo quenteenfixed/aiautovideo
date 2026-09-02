@@ -32,6 +32,11 @@ export const MixedScene: React.FC<MixedSceneProps> = ({ scene, template, visual 
       {/* 动画背景 */}
       <AnimatedBackground type={bgType} bgColor={template.bg_color} accentColor={template.accent_color} primaryColor={template.primary_color} seed={scene.scene_id || 1} />
 
+      {/* 内容可读性渐变遮罩 */}
+      <AbsoluteFill style={{
+        background: `radial-gradient(ellipse at center, ${template.bg_color}aa 0%, ${template.bg_color}66 40%, transparent 70%)`,
+      }} />
+
       {/* Render each element */}
       {elements.map((el, i) => {
         const layout = el.layout || { x: 0, y: 0, width: 100, height: 100 };
