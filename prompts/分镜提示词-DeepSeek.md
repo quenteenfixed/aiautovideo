@@ -5,7 +5,7 @@
 1. 复制下方【提示词】和【JSON 模板】部分
 2. 在末尾粘贴你的原始文案
 3. 发送给 大模型
-4. 将输出的 JSON 保存为 `scripts/aiproject-football-001.json`
+4. 将输出的 JSON 保存为 `scripts/aiproject-football-1.json`
 5. 执行后续渲染命令
 
 ***
@@ -37,15 +37,13 @@ JSON 中字符串以半角双引号 " 作为边界，字符串内部再出现 " 
 3. **按语义切分**：在原文的句号、问号、感叹号处切分。一个长句如果超过80字，在逗号或分号处二次切分。
 4. **场景数量**：一篇1000字左右的文案，应该拆成8-15个场景。每个场景必须独立表达一个完整的信息点。
 5. **视觉匹配**：根据每个场景的内容选择最合适的视觉类型(visual)。
-6. **模板指定（强制）**：输出 JSON 中的 `template` 字段**必须**使用：illustration_style。
+6. **模板指定（强制）**：输出 JSON 中的 `template` 字段**必须**使用"data_visual_style"。
 7. **数据提取**：如果场景涉及数字、百分比、对比，必须使用 chart 类型并提取真实数据。
 8. **标题精炼**：每个场景的 title 不超过12个字，要概括该场景的核心信息点。
 9. **引号安全**：所有字段遵守「JSON 字符串安全规则」，引用和强调一律用「」。
 10. **outro 不重复**：outro 的 narration 绝对不能与最后一个场景(scene)的 narration 相同或高度相似。outro 应该是独立的引导语或下期预告，不是对最后一个场景的复述。如果原文最后一段已经是引导语，可以适当改写后放入 outro，同时从 scenes 中移除该内容。
-11. **禁止自动选择**：严禁根据内容风格自行判断模板，必须严格按照用户指定的模板名称填写。模板名必须来自 `data_visual_style`、`cinematic_style`、`illustration_style`、`minimal_style`、`infographic_style` 之一。
-
-### 模板说明
-- data_visual_style、cinematic_style、illustration_style、minimal_style、infographic_style
+11. **禁止自动选择**：严禁根据内容风格自行判断模板，必须严格按照用户指定的模板名称填写。模板名必须来自 `data_visual_style`、`cinematic_style`、`minimal_style`、`infographic_style` 之一。
+12. `illustration_style`
 
 ### 视觉类型选择规则
 
@@ -152,9 +150,9 @@ JSON 中字符串以半角双引号 " 作为边界，字符串内部再出现 " 
   "voice": {
     "provider": "edge-tts",
     "voice_name": "zh-CN-YunyangNeural",
-    "rate": "+33%",
+    "rate": "+35%",
     "pitch": "+18Hz",
-    "volume": "+33%"
+    "volume": "+53%"
   },
   "subtitle_style": {
     "font_size": 42,

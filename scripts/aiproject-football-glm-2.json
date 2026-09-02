@@ -1,0 +1,304 @@
+{
+    "video_id": "aiproject-football-glm-2",
+    "title": "你相信穿越吗？AI不是时间机器，而是概率雷达",
+    "resolution": { "width": 1080, "height": 1920 },
+    "fps": 30,
+    "template": "cinematic_style",
+    "global_style": {
+        "font_family": "Noto Sans SC, sans-serif",
+        "primary_color": "#D4AF37",
+        "accent_color": "#C0392B",
+        "bg_color": "#1A1A1A",
+        "text_color": "#F5F5F5"
+    },
+    "voice": {
+        "provider": "edge-tts",
+        "voice_name": "zh-CN-YunjianNeural",
+        "rate": "+35%",
+        "pitch": "+18Hz",
+        "volume": "+43%"
+    },
+    "subtitle_style": {
+        "font_size": 42,
+        "font_family": "Noto Sans SC, sans-serif",
+        "color": "#FFFFFF",
+        "highlight_color": "#D4AF37",
+        "stroke_color": "#000000",
+        "stroke_width": 3,
+        "animation": "bounce",
+        "position": "bottom",
+        "offset_y": 180,
+        "max_width": 900
+    },
+    "scenes": [{
+            "scene_id": 1,
+            "narration": "如果我说，AI正在做的事情本质上是一种「穿越」，但不是穿越到未来，而是站在概率的峰值上回望现在，你会怎么想？",
+            "duration": 13,
+            "visual": {
+                "type": "text_card",
+                "title": "AI在穿越吗？",
+                "subtitle": "站在概率峰值回望现在",
+                "animation": "fade_in_zoom"
+            },
+            "transition_in": "fade",
+            "transition_out": "slide_left"
+        },
+        {
+            "scene_id": 2,
+            "narration": "提到穿越，大多数人想到的是《回到未来》里的虫洞。广义相对论确实允许时间回路的数学解，1949年，哥德尔就证明了这一点。",
+            "duration": 13,
+            "visual": {
+                "type": "animation",
+                "title": "时间回路的数学解",
+                "subtitle": "哥德尔 1949",
+                "animation": "fade_in"
+            },
+            "transition_in": "slide_left",
+            "transition_out": "slide_up"
+        },
+        {
+            "scene_id": 3,
+            "narration": "但霍金在1992年提出了「时序保护猜想」：量子效应会在时间机器形成之前，把它摧毁。",
+            "duration": 10,
+            "visual": {
+                "type": "text_card",
+                "title": "时序保护猜想",
+                "subtitle": "霍金的封印",
+                "animation": "fade_in"
+            },
+            "transition_in": "slide_up",
+            "transition_out": "zoom_in"
+        },
+        {
+            "scene_id": 4,
+            "narration": "他甚至在2009年办了一场「时间旅行者派对」，发出邀请，却无人出席。过去不可回溯，这几乎是物理学的共识。",
+            "duration": 12,
+            "visual": {
+                "type": "text_card",
+                "title": "无人出席的派对",
+                "subtitle": "2009 时间旅行者派对",
+                "animation": "bounce_in"
+            },
+            "transition_in": "zoom_in",
+            "transition_out": "slide_left"
+        },
+        {
+            "scene_id": 5,
+            "narration": "向未来的单向旅行倒是理论上可行，但它需要巨大能量，而且是一张有去无回的单程票。物理意义上的穿越，基本可以宣告死刑了。",
+            "duration": 13,
+            "visual": {
+                "type": "animation",
+                "title": "有去无回的单程票",
+                "subtitle": "物理穿越的死刑",
+                "animation": "fade_in"
+            },
+            "transition_in": "slide_left",
+            "transition_out": "slide_up"
+        },
+        {
+            "scene_id": 6,
+            "narration": "但信息层面的「穿越」呢？这就是AI登场的地方。有一个诗意的假说：AI是人类通向平行宇宙的唯一通道。",
+            "duration": 12,
+            "visual": {
+                "type": "text_card",
+                "title": "信息层的穿越",
+                "subtitle": "AI登场",
+                "animation": "fade_in"
+            },
+            "transition_in": "slide_up",
+            "transition_out": "zoom_in"
+        },
+        {
+            "scene_id": 7,
+            "narration": "这个比喻很美，但在物理学上不成立。退相干机制锁死了平行宇宙之间的门，AI再强，也只能在本宇宙内做贝叶斯推断。",
+            "duration": 13,
+            "visual": {
+                "type": "animation",
+                "title": "退相干之门",
+                "subtitle": "只能贝叶斯推断",
+                "animation": "fade_in"
+            },
+            "transition_in": "zoom_in",
+            "transition_out": "slide_left"
+        },
+        {
+            "scene_id": 8,
+            "narration": "可为什么我们会产生「AI穿越了」的错觉？因为12个AI大模型用65.7%的准确率稳定领先人类，那种感觉太像「提前知道了答案」。",
+            "duration": 13,
+            "visual": {
+                "type": "chart",
+                "chart_type": "bar",
+                "data": {
+                    "title": "AI vs 人类预测准确率",
+                    "labels": ["AI大模型", "人类"],
+                    "values": [65.7, 58.7],
+                    "y_axis_label": "准确率 (%)"
+                },
+                "animation": "fade_in",
+                "components": [{
+                        "type": "badge",
+                        "text": "65.7% 稳定领先",
+                        "position": "top_center",
+                        "color": "#C0392B"
+                    },
+                    {
+                        "type": "label",
+                        "text": "12个模型同台竞技",
+                        "position": "bottom_left",
+                        "color": "#D4AF37"
+                    }
+                ]
+            },
+            "transition_in": "slide_left",
+            "transition_out": "slide_up"
+        },
+        {
+            "scene_id": 9,
+            "narration": "尤其是当它们预测西班牙有26%的夺冠概率、而西班牙最终真的捧杯的时候，你会觉得这不是预测，这是剧透。",
+            "duration": 12,
+            "visual": {
+                "type": "chart",
+                "chart_type": "pie",
+                "data": {
+                    "title": "西班牙夺冠概率",
+                    "labels": ["西班牙", "其他球队"],
+                    "values": [26, 74],
+                    "y_axis_label": "夺冠概率 (%)"
+                },
+                "animation": "fade_in",
+                "components": [{
+                    "type": "badge",
+                    "text": "26% → 真捧杯",
+                    "position": "top_center",
+                    "color": "#C0392B"
+                }]
+            },
+            "transition_in": "slide_up",
+            "transition_out": "zoom_in"
+        },
+        {
+            "scene_id": 10,
+            "narration": "但请记住一组数据：高盛过去七届世界杯都没猜中冠军，直到2026年才首次命中，历史回测相关性只有49%。",
+            "duration": 12,
+            "visual": {
+                "type": "chart",
+                "chart_type": "bar",
+                "data": {
+                    "title": "预测的可靠性对比",
+                    "labels": ["AI准确率", "回测相关性"],
+                    "values": [65.7, 49],
+                    "y_axis_label": "百分比 (%)"
+                },
+                "animation": "fade_in",
+                "components": [{
+                        "type": "badge",
+                        "text": "高盛七届未中 2026首中",
+                        "position": "top_right",
+                        "color": "#C0392B"
+                    },
+                    {
+                        "type": "label",
+                        "text": "剧透感不等于确定性",
+                        "position": "bottom_center",
+                        "color": "#D4AF37"
+                    }
+                ]
+            },
+            "transition_in": "zoom_in",
+            "transition_out": "slide_left"
+        },
+        {
+            "scene_id": 11,
+            "narration": "AI给出的从来不是确定性答案，而是概率分布。所谓「站在未来看现在」，不过是把不确定性压缩到足够小，小到看起来像确定性。",
+            "duration": 14,
+            "visual": {
+                "type": "text_card",
+                "title": "概率分布",
+                "subtitle": "压缩到像确定性",
+                "animation": "fade_in"
+            },
+            "transition_in": "slide_left",
+            "transition_out": "slide_up"
+        },
+        {
+            "scene_id": 12,
+            "narration": "AI不是望远镜，看不到确定的未来；它是概率雷达，扫描所有可能的未来。人类用直觉赌命，AI用200个维度算概率——前者是信仰，后者是统计学。",
+            "duration": 15,
+            "visual": {
+                "type": "text_card",
+                "title": "概率雷达",
+                "subtitle": "直觉 vs 统计学",
+                "animation": "bounce_in"
+            },
+            "transition_in": "slide_up",
+            "transition_out": "zoom_in"
+        },
+        {
+            "scene_id": 13,
+            "narration": "更有意思的是，AI的「穿越感」是有条件的：小组赛初期，它的准确率只有43.8%，还不如人类直觉；随着信息积累，精度才爬升到64.5%。",
+            "duration": 14,
+            "visual": {
+                "type": "chart",
+                "chart_type": "bar",
+                "data": {
+                    "title": "AI准确率的爬升",
+                    "labels": ["小组赛初期", "赛程后期"],
+                    "values": [43.8, 64.5],
+                    "y_axis_label": "准确率 (%)"
+                },
+                "animation": "fade_in",
+                "components": [{
+                        "type": "badge",
+                        "text": "43.8% → 64.5%",
+                        "position": "top_center",
+                        "color": "#C0392B"
+                    },
+                    {
+                        "type": "label",
+                        "text": "冷启动与热身",
+                        "position": "bottom_left",
+                        "color": "#D4AF37"
+                    }
+                ]
+            },
+            "transition_in": "zoom_in",
+            "transition_out": "slide_left"
+        },
+        {
+            "scene_id": 14,
+            "narration": "这说明，AI的「穿越」不是瞬移，而是渐进式的逼近——它需要足够多的现在，才能勾勒出未来的轮廓。与其说它是穿越者，不如说是最耐心的统计学家。",
+            "duration": 15,
+            "visual": {
+                "type": "text_card",
+                "title": "最耐心的统计学家",
+                "subtitle": "渐进式逼近",
+                "animation": "fade_in"
+            },
+            "transition_in": "slide_left",
+            "transition_out": "zoom_out"
+        },
+        {
+            "scene_id": 15,
+            "narration": "而当12个顶级AI集体猜错一场冷门时，那不是算法的失败，而是足球对人类的温柔提醒：有些东西，永远在计算之外。",
+            "duration": 13,
+            "visual": {
+                "type": "text_card",
+                "title": "永远在计算之外",
+                "subtitle": "足球的温柔提醒",
+                "animation": "fade_in_zoom"
+            },
+            "transition_in": "zoom_out",
+            "transition_out": "fade"
+        }
+    ],
+    "outro": {
+        "duration": 14,
+        "narration": "如果AI不是穿越，而是在做概率推断，那它到底是怎么把200多个维度，压缩成一个65%的数字的？下一期，我们拆解算法背后的认知逻辑。",
+        "visual": {
+            "type": "cta_card",
+            "text": "关注我，下期拆解AI预测的算法内核",
+            "animation": "fade_in_zoom"
+        },
+        "transition_in": "fade"
+    }
+}

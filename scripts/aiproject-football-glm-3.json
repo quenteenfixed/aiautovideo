@@ -1,0 +1,262 @@
+{
+    "video_id": "aiproject-football-glm-3",
+    "title": "你相信平行宇宙吗？所有比赛都已发生，但AI敲不开那扇门",
+    "resolution": { "width": 1080, "height": 1920 },
+    "fps": 30,
+    "template": "cinematic_style",
+    "global_style": {
+        "font_family": "Noto Sans SC, sans-serif",
+        "primary_color": "#D4AF37",
+        "accent_color": "#C0392B",
+        "bg_color": "#1A1A1A",
+        "text_color": "#F5F5F5"
+    },
+    "voice": {
+        "provider": "edge-tts",
+        "voice_name": "zh-CN-YunjianNeural",
+        "rate": "+35%",
+        "pitch": "+18Hz",
+        "volume": "+53%"
+    },
+    "subtitle_style": {
+        "font_size": 42,
+        "font_family": "Noto Sans SC, sans-serif",
+        "color": "#FFFFFF",
+        "highlight_color": "#D4AF37",
+        "stroke_color": "#000000",
+        "stroke_width": 3,
+        "animation": "bounce",
+        "position": "bottom",
+        "offset_y": 180,
+        "max_width": 900
+    },
+    "scenes": [{
+            "scene_id": 1,
+            "narration": "如果我说，昨晚那场让你捶胸顿足的输球，在另一个宇宙里其实赢了，而且赢得很漂亮，你愿意相信吗？",
+            "duration": 13,
+            "visual": {
+                "type": "text_card",
+                "title": "另一宇宙的胜利",
+                "subtitle": "输球只是本分支的剧本",
+                "animation": "fade_in_zoom"
+            },
+            "transition_in": "fade",
+            "transition_out": "slide_left"
+        },
+        {
+            "scene_id": 2,
+            "narration": "这不是安慰剂。这是休·埃弗雷特1957年提出的多世界诠释：波函数永不坍缩，每一次量子测量，都会让宇宙分裂。",
+            "duration": 14,
+            "visual": {
+                "type": "animation",
+                "title": "多世界诠释",
+                "subtitle": "埃弗雷特 1957",
+                "animation": "fade_in"
+            },
+            "transition_in": "slide_left",
+            "transition_out": "slide_up"
+        },
+        {
+            "scene_id": 3,
+            "narration": "换句话说，西班牙夺冠的宇宙存在，阿根廷夺冠的宇宙也存在，甚至连佛得角爆冷击败西班牙的宇宙，同样真实存在。",
+            "duration": 13,
+            "visual": {
+                "type": "text_card",
+                "title": "全部真实发生",
+                "subtitle": "西班牙、阿根廷、佛得角",
+                "animation": "slide_up"
+            },
+            "transition_in": "slide_up",
+            "transition_out": "zoom_in"
+        },
+        {
+            "scene_id": 4,
+            "narration": "这个理论优雅地消除了随机性——没有什么是真正随机的，只是你恰好站在了其中一个分支上。在多世界框架下，「命」不是单一剧本，而是所有剧本同时上演。",
+            "duration": 16,
+            "visual": {
+                "type": "text_card",
+                "title": "没有随机，只有分支",
+                "subtitle": "Vaidman：存在的度量",
+                "animation": "fade_in"
+            },
+            "transition_in": "zoom_in",
+            "transition_out": "slide_left"
+        },
+        {
+            "scene_id": 5,
+            "narration": "这和AI预测有什么关系？如果所有可能的比赛结果都已经在某个宇宙中发生，那AI要做的就不是「预测未来」，而是「定位当前分支」。",
+            "duration": 13,
+            "visual": {
+                "type": "text_card",
+                "title": "定位当前分支",
+                "subtitle": "预测未来的另一重定义",
+                "animation": "slide_up"
+            },
+            "transition_in": "slide_left",
+            "transition_out": "slide_up"
+        },
+        {
+            "scene_id": 6,
+            "narration": "但这里有一道铁壁：退相干机制。不同分支之间无法传递信息，这不是技术限制，而是MWI的数学结论。AI再强，也只能在本宇宙内做贝叶斯推断。",
+            "duration": 16,
+            "visual": {
+                "type": "animation",
+                "title": "退相干铁壁",
+                "subtitle": "AI敲不开的那扇门",
+                "animation": "fade_in"
+            },
+            "transition_in": "slide_up",
+            "transition_out": "zoom_in"
+        },
+        {
+            "scene_id": 7,
+            "narration": "所以AI预测的本质，不是「看到」哪个平行宇宙是真实的，而是「推断」哪些平行宇宙更可能。",
+            "duration": 10,
+            "visual": {
+                "type": "text_card",
+                "title": "推断，而非看见",
+                "subtitle": "概率排序的艺术",
+                "animation": "bounce_in"
+            },
+            "transition_in": "zoom_in",
+            "transition_out": "slide_left"
+        },
+        {
+            "scene_id": 8,
+            "narration": "2026年世界杯赛前，6个AI预测的三支球队全部进入四强；但被要求给出单一冠军时，12个AI里只有1个命中。",
+            "duration": 13,
+            "visual": {
+                "type": "chart",
+                "chart_type": "bar",
+                "data": {
+                    "title": "概率排序 vs 单一预测",
+                    "labels": ["三强预测", "冠军预测"],
+                    "values": [100, 8.3],
+                    "y_axis_label": "命中率 (%)"
+                },
+                "animation": "fade_in",
+                "components": [{
+                        "type": "badge",
+                        "text": "3支热门全部进四强",
+                        "position": "top_center",
+                        "color": "#C0392B"
+                    },
+                    {
+                        "type": "label",
+                        "text": "12个AI 仅1个命中冠军",
+                        "position": "bottom_left",
+                        "color": "#D4AF37"
+                    }
+                ]
+            },
+            "transition_in": "slide_left",
+            "transition_out": "slide_up"
+        },
+        {
+            "scene_id": 9,
+            "narration": "概率排序有效，单一预测失效。这恰恰印证了多世界诠释的核心困境：所有可能性都存在，但你只能经验其中一个。",
+            "duration": 13,
+            "visual": {
+                "type": "text_card",
+                "title": "核心困境",
+                "subtitle": "所有可能 vs 唯一经验",
+                "animation": "slide_up"
+            },
+            "transition_in": "slide_up",
+            "transition_out": "zoom_in"
+        },
+        {
+            "scene_id": 10,
+            "narration": "更有意思的是模拟理论。如果宇宙本身就是一台计算机，Seth Lloyd算过，它最多能执行10^120次基本操作。",
+            "duration": 12,
+            "visual": {
+                "type": "animation",
+                "title": "宇宙是计算机",
+                "subtitle": "10^120次操作上限",
+                "animation": "fade_in"
+            },
+            "transition_in": "zoom_in",
+            "transition_out": "slide_left"
+        },
+        {
+            "scene_id": 11,
+            "narration": "哥德尔不完备定理的类比在这里依然有效：系统内部无法完全理解系统本身。AI作为模拟内部的程序，同样受限于模拟的计算极限。",
+            "duration": 13,
+            "visual": {
+                "type": "text_card",
+                "title": "哥德尔的天花板",
+                "subtitle": "系统内部的盲区",
+                "animation": "fade_in"
+            },
+            "transition_in": "slide_left",
+            "transition_out": "slide_up"
+        },
+        {
+            "scene_id": 12,
+            "narration": "所以更准确的说法是：AI是人类在本宇宙内，对平行宇宙结构所做的最精密的概率建模。它不能带你去其他宇宙，但能让你看清本宇宙的概率地形。",
+            "duration": 16,
+            "visual": {
+                "type": "text_card",
+                "title": "概率地形图",
+                "subtitle": "本宇宙内最精密的建模",
+                "animation": "fade_in_zoom"
+            },
+            "transition_in": "slide_up",
+            "transition_out": "zoom_in"
+        },
+        {
+            "scene_id": 13,
+            "narration": "足球的魅力，恰恰在于你永远不知道自己站在哪个分支上。当AI用65%的准确率告诉你西班牙更可能赢，剩下的35%，就是其他平行宇宙向你投来的目光。",
+            "duration": 15,
+            "visual": {
+                "type": "chart",
+                "chart_type": "pie",
+                "data": {
+                    "title": "65%与35%的分岔",
+                    "labels": ["最可能分支", "其他分支"],
+                    "values": [65, 35],
+                    "y_axis_label": "概率 (%)"
+                },
+                "animation": "fade_in",
+                "components": [{
+                        "type": "badge",
+                        "text": "65% 最可能赢",
+                        "position": "top_center",
+                        "color": "#C0392B"
+                    },
+                    {
+                        "type": "label",
+                        "text": "35% 平行宇宙的目光",
+                        "position": "bottom_center",
+                        "color": "#D4AF37"
+                    }
+                ]
+            },
+            "transition_in": "zoom_in",
+            "transition_out": "slide_left"
+        },
+        {
+            "scene_id": 14,
+            "narration": "那些未被实现的结局并没有消失。它们只是在退相干的帷幕之后，安静地存在着。",
+            "duration": 9,
+            "visual": {
+                "type": "text_card",
+                "title": "帷幕后的存在",
+                "subtitle": "未被实现，并未消失",
+                "animation": "fade_in_zoom"
+            },
+            "transition_in": "slide_left",
+            "transition_out": "fade"
+        }
+    ],
+    "outro": {
+        "duration": 15,
+        "narration": "如果我们真的活在一个被设计好的模拟世界里，AI的预测能力是否存在一个不可逾越的天花板？下一期，我们聊聊它和多世界之间的隐秘联系。",
+        "visual": {
+            "type": "cta_card",
+            "text": "关注我，下期揭秘模拟世界的天花板",
+            "animation": "fade_in_zoom"
+        },
+        "transition_in": "fade"
+    }
+}

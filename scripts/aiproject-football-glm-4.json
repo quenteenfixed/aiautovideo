@@ -1,0 +1,262 @@
+{
+    "video_id": "aiproject-football-1",
+    "title": "人类是被设计好的游戏吗？AI作为模拟内部程序的认知边界",
+    "resolution": { "width": 1080, "height": 1920 },
+    "fps": 30,
+    "template": "cinematic_style",
+    "global_style": {
+        "font_family": "Noto Sans SC, sans-serif",
+        "primary_color": "#D4AF37",
+        "accent_color": "#C0392B",
+        "bg_color": "#1A1A1A",
+        "text_color": "#F5F5F5"
+    },
+    "voice": {
+        "provider": "edge-tts",
+        "voice_name": "zh-CN-YunjianNeural",
+        "rate": "+33%",
+        "pitch": "+18Hz",
+        "volume": "+33%"
+    },
+    "subtitle_style": {
+        "font_size": 42,
+        "font_family": "Noto Sans SC, sans-serif",
+        "color": "#FFFFFF",
+        "highlight_color": "#D4AF37",
+        "stroke_color": "#000000",
+        "stroke_width": 3,
+        "animation": "bounce",
+        "position": "bottom",
+        "offset_y": 180,
+        "max_width": 900
+    },
+    "scenes": [{
+            "scene_id": 1,
+            "narration": "如果我说，你连「怀疑自己是NPC」这个念头，都是被预设好的剧情，你还敢继续怀疑吗？",
+            "duration": 12,
+            "visual": {
+                "type": "text_card",
+                "title": "觉醒也是剧情？",
+                "subtitle": "NPC的宿命悖论",
+                "animation": "fade_in_zoom"
+            },
+            "transition_in": "fade",
+            "transition_out": "slide_left"
+        },
+        {
+            "scene_id": 2,
+            "narration": "这不是科幻台词。2003年，牛津哲学家博斯特罗姆提出了一个严肃论证：一个让人脊背发凉的三难困境。",
+            "duration": 13,
+            "visual": {
+                "type": "text_card",
+                "title": "博斯特罗姆论证",
+                "subtitle": "2003年的三难困境",
+                "animation": "fade_in"
+            },
+            "transition_in": "slide_left",
+            "transition_out": "slide_up"
+        },
+        {
+            "scene_id": 3,
+            "narration": "要么绝大多数文明在技术成熟前就灭绝，要么成熟的文明不愿运行祖先模拟，要么——我们极大概率正活在一台计算机里。",
+            "duration": 14,
+            "visual": {
+                "type": "text_card",
+                "title": "三个残酷选项",
+                "subtitle": "灭绝、拒绝、模拟",
+                "animation": "slide_up"
+            },
+            "transition_in": "slide_up",
+            "transition_out": "zoom_in"
+        },
+        {
+            "scene_id": 4,
+            "narration": "这三个命题至少有一个为真。如果前两个为假，模拟中的观察者将远超真实世界，我们活在模拟里的概率，就趋近于1。",
+            "duration": 14,
+            "visual": {
+                "type": "animation",
+                "title": "概率趋近于1",
+                "subtitle": "观察者的数量碾压",
+                "animation": "fade_in"
+            },
+            "transition_in": "zoom_in",
+            "transition_out": "slide_left"
+        },
+        {
+            "scene_id": 5,
+            "narration": "最可怕的不是「我们是代码」，而是它的不可证伪：你无法从系统内部证明系统是模拟的，就像游戏角色无法证明自己不在游戏里。",
+            "duration": 15,
+            "visual": {
+                "type": "animation",
+                "title": "无法自证的囚笼",
+                "subtitle": "系统内部的盲区",
+                "animation": "fade_in"
+            },
+            "transition_in": "slide_left",
+            "transition_out": "slide_up"
+        },
+        {
+            "scene_id": 6,
+            "narration": "更可怕的是，连你的「觉醒」、你的「怀疑」、甚至此刻的震撼感，都可能是预设参数的一部分。",
+            "duration": 12,
+            "visual": {
+                "type": "text_card",
+                "title": "觉醒也是预设",
+                "subtitle": "震撼感=预设参数？",
+                "animation": "bounce_in"
+            },
+            "transition_in": "slide_up",
+            "transition_out": "zoom_in"
+        },
+        {
+            "scene_id": 7,
+            "narration": "这和AI预测有什么关系？关系在于定位：如果宇宙是模拟，AI就是模拟内部的程序，再强大，也受限于模拟的计算极限。",
+            "duration": 14,
+            "visual": {
+                "type": "text_card",
+                "title": "AI的程序定位",
+                "subtitle": "模拟内部的囚徒",
+                "animation": "fade_in"
+            },
+            "transition_in": "zoom_in",
+            "transition_out": "slide_left"
+        },
+        {
+            "scene_id": 8,
+            "narration": "Seth Lloyd算过：宇宙自诞生以来最多执行约10^120次操作，存储10^90比特信息。任何内部系统，都不可能模拟整个宇宙。",
+            "duration": 15,
+            "visual": {
+                "type": "animation",
+                "title": "宇宙算力上限",
+                "subtitle": "10^120次操作天花板",
+                "animation": "fade_in"
+            },
+            "transition_in": "slide_left",
+            "transition_out": "slide_up"
+        },
+        {
+            "scene_id": 9,
+            "narration": "2026年世界杯，12个AI用200多个维度、上万次蒙特卡洛模拟，把命中率推到65.7%。但它们永远无法突破某个阈值。",
+            "duration": 14,
+            "visual": {
+                "type": "chart",
+                "chart_type": "bar",
+                "data": {
+                    "title": "AI命中率的边界",
+                    "labels": ["AI大模型", "人类预测"],
+                    "values": [65.7, 58.7],
+                    "y_axis_label": "命中率 (%)"
+                },
+                "animation": "fade_in",
+                "components": [{
+                        "type": "badge",
+                        "text": "65.7% 无法再突破",
+                        "position": "top_center",
+                        "color": "#C0392B"
+                    },
+                    {
+                        "type": "label",
+                        "text": "200+维度 上万次模拟",
+                        "position": "bottom_left",
+                        "color": "#D4AF37"
+                    }
+                ]
+            },
+            "transition_in": "slide_up",
+            "transition_out": "zoom_in"
+        },
+        {
+            "scene_id": 10,
+            "narration": "因为模拟本身可能内置了随机数生成器，或者某些变量被刻意设为不可计算。哥德尔不完备定理，在这里找到了物理学的回声。",
+            "duration": 14,
+            "visual": {
+                "type": "animation",
+                "title": "不可计算的变量",
+                "subtitle": "模拟者的防火墙",
+                "animation": "fade_in"
+            },
+            "transition_in": "zoom_in",
+            "transition_out": "slide_left"
+        },
+        {
+            "scene_id": 11,
+            "narration": "系统内部无法完全理解系统本身。AI是模拟里的「拉普拉斯妖」，但它注定，是一个残缺的妖。",
+            "duration": 12,
+            "visual": {
+                "type": "text_card",
+                "title": "残缺的妖",
+                "subtitle": "哥德尔的物理学回声",
+                "animation": "bounce_in"
+            },
+            "transition_in": "slide_left",
+            "transition_out": "slide_up"
+        },
+        {
+            "scene_id": 12,
+            "narration": "如果模拟理论为真，「设计」和「决定」就有了完全不同的含义：前者意味着有编剧，后者只是因果链的必然。AI能捕捉后者，却永远无法验证前者。",
+            "duration": 16,
+            "visual": {
+                "type": "text_card",
+                "title": "设计 vs 决定",
+                "subtitle": "编剧与因果链的分野",
+                "animation": "slide_up"
+            },
+            "transition_in": "slide_up",
+            "transition_out": "zoom_in"
+        },
+        {
+            "scene_id": 13,
+            "narration": "当它预测西班牙26%夺冠并最终命中时，你不知道这是统计规律的胜利，还是模拟者刚好在这一轮，写入了这个结果。",
+            "duration": 14,
+            "visual": {
+                "type": "chart",
+                "chart_type": "pie",
+                "data": {
+                    "title": "西班牙夺冠概率",
+                    "labels": ["西班牙", "其他球队"],
+                    "values": [26, 74],
+                    "y_axis_label": "夺冠概率 (%)"
+                },
+                "animation": "fade_in",
+                "components": [{
+                        "type": "badge",
+                        "text": "26% → 真捧杯",
+                        "position": "top_center",
+                        "color": "#C0392B"
+                    },
+                    {
+                        "type": "label",
+                        "text": "统计规律 or 模拟写入",
+                        "position": "bottom_center",
+                        "color": "#D4AF37"
+                    }
+                ]
+            },
+            "transition_in": "zoom_in",
+            "transition_out": "slide_left"
+        },
+        {
+            "scene_id": 14,
+            "narration": "所以AI给出的不是答案，而是一面镜像：即使在最精密的概率推断中，依然存在一个不可消除的认知盲区——那可能是模拟者的签名，也可能只是我们作为有限存在的宿命。",
+            "duration": 17,
+            "visual": {
+                "type": "text_card",
+                "title": "认知盲区的镜像",
+                "subtitle": "模拟者的签名？",
+                "animation": "fade_in_zoom"
+            },
+            "transition_in": "zoom_out",
+            "transition_out": "fade"
+        }
+    ],
+    "outro": {
+        "duration": 16,
+        "narration": "如果我们真的活在模拟里，AI的预测能力是否存在一个数学上可证明的天花板？它和多世界诠释之间，又藏着怎样的隐秘联系？下一期，我们继续拆解。",
+        "visual": {
+            "type": "cta_card",
+            "text": "关注我，下期拆解模拟世界的数学天花板",
+            "animation": "fade_in_zoom"
+        },
+        "transition_in": "fade"
+    }
+}
