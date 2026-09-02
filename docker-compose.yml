@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # Video rendering service
+  video-renderer:
+    build: .
+    container_name: aiautovideo-renderer
+    volumes:
+      - ./output:/app/output
+      - ./scripts:/app/scripts
+      - ./.env:/app/.env:ro
+    environment:
+      - PYTHON_PATH=python3
+      - REMOTION_CONCURRENCY=${REMOTION_CONCURRENCY:-2}
+      - OUTPUT_DIR=/app/output
+      - PEXELS_API_KEY=${PEXELS_API_KEY:-}
+      - UNSPLASH_ACCESS_KEY=${UNSPLASH_ACCESS_KEY:-}
+    ports:
+      - "3000:3000"
+    command: >
+      sh -c "npx remotion studio --port 3000 --host 0.0.0.0"
+
+  # Batch production service (one-off)
+  batch-producer:
+    build: .
+    container_name: aiautovideo-batch
+    volumes:
+      - ./output:/app/output
+      - ./scripts:/app/scripts
+      - ./.env:/app/.env:ro
+    environment:
+      - PYTHON_PATH=python3
+      - REMOTION_CONCURRENCY=${REMOTION_CONCURRENCY:-2}
+      - OUTPUT_DIR=/app/output
+      - PEXELS_API_KEY=${PEXELS_API_KEY:-}
+    profiles: ["batch"]
+    command: >
+      npx tsx scripts/batch.ts /app/scripts --output /app/output
+
+  # TTS-only service
+  tts-only:
+    build: .
+    container_name: aiautovideo-tts
+    volumes:
+      - ./output:/app/output
+      - ./scripts:/app/scripts
+      - ./.env:/app/.env:ro
+    environment:
+      - PYTHON_PATH=python3
+    profiles: ["tts"]
+    command: >
+      npx tsx scripts/batch.ts /app/scripts --tts-only --output /app/output

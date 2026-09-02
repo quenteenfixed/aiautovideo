@@ -1,0 +1,190 @@
+{
+  "video_id": "football_005",
+  "title": "足球是被预先设计好的吗？设计与决定的一字之差",
+  "resolution": { "width": 1080, "height": 1920 },
+  "fps": 30,
+  "template": "data_visual_style",
+  "global_style": {
+    "font_family": "Noto Sans SC, sans-serif",
+    "primary_color": "#4A90D9",
+    "accent_color": "#F5A623",
+    "bg_color": "#0F1923",
+    "text_color": "#E0E7FF"
+  },
+  "voice": {
+    "provider": "edge-tts",
+    "voice_name": "zh-CN-YunxiNeural",
+    "rate": "+10%",
+    "pitch": "+0Hz",
+    "volume": "+0%"
+  },
+  "subtitle_style": {
+    "font_size": 42,
+    "font_family": "Noto Sans SC, sans-serif",
+    "color": "#FFFFFF",
+    "highlight_color": "#F5A623",
+    "stroke_color": "#000000",
+    "stroke_width": 3,
+    "animation": "bounce",
+    "position": "bottom",
+    "offset_y": 180,
+    "max_width": 900
+  },
+  "scenes": [
+    {
+      "scene_id": 1,
+      "narration": "昨晚那个让你热血沸腾的绝杀球，到底是编剧精心安排的桥段，还是138亿年前大爆炸就注定的因果终点？",
+      "duration": 10,
+      "visual": {
+        "type": "text_card",
+        "title": "足球是被预先设计好的吗？",
+        "subtitle": "设计与决定的一字之差",
+        "animation": "fade_in_zoom"
+      },
+      "transition_in": "fade",
+      "transition_out": "slide_left"
+    },
+    {
+      "scene_id": 2,
+      "narration": "这个问题必须拆开回答，因为设计和决定是两个完全不同的概念。设计意味着有意识的安排，需要一个设计者；决定只是因果链的必然推演，不需要任何意志介入。拉普拉斯决定论说的是后者，模拟理论暗示的可能是前者。混淆这两者，就会陷入阴谋论的泥潭。",
+      "duration": 18,
+      "visual": {
+        "type": "text_card",
+        "title": "设计 vs 决定",
+        "subtitle": "有意识安排  vs  因果链必然推演",
+        "animation": "slide_up",
+        "components": [
+          {
+            "type": "label",
+            "text": "设计 = 需要设计者",
+            "position": "top_left",
+            "color": "#F5A623"
+          },
+          {
+            "type": "label",
+            "text": "决定 = 无需意志介入",
+            "position": "top_right",
+            "color": "#4A90D9"
+          }
+        ]
+      },
+      "transition_in": "slide_left",
+      "transition_out": "slide_up"
+    },
+    {
+      "scene_id": 3,
+      "narration": "从物理学角度看，如果宇宙是严格决定论的，那每场足球比赛在大爆炸那一刻就已确定。球员的每个动作、每次传球、每个进球，都是初始条件加物理定律的必然输出。但量子力学引入了本质随机性，混沌理论又放大了微小扰动的影响。所以即使被决定，也不等于可预测。洛伦兹1963年就证明了，确定性系统可以产生完全不可预测的长期行为。",
+      "duration": 22,
+      "visual": {
+        "type": "chart",
+        "chart_type": "bar",
+        "data": {
+          "title": "决定性 vs 可预测性",
+          "labels": ["经典力学", "量子力学", "混沌理论"],
+          "values": [95, 30, 15],
+          "y_axis_label": "可预测性 (%)"
+        },
+        "animation": "fade_in",
+        "components": [
+          {
+            "type": "label",
+            "text": "确定性 ≠ 可预测性",
+            "position": "bottom_center",
+            "color": "#F5A623"
+          }
+        ]
+      },
+      "transition_in": "slide_up",
+      "transition_out": "zoom_in"
+    },
+    {
+      "scene_id": 4,
+      "narration": "AI在这个光谱上处于什么位置？它既不能验证设计，也无法实现完全的决定。它能做的是在混沌系统中识别统计规律。2026年世界杯的数据很有说服力：AI在实力差距明确的比赛中准确率接近90%，但在平局和冷门面前几乎失效。这恰恰说明足球不是剧本——如果是剧本，AI应该能识别出编剧的模式；但它只能识别实力的梯度，无法识别叙事的转折。",
+      "duration": 20,
+      "visual": {
+        "type": "chart",
+        "chart_type": "bar",
+        "data": {
+          "title": "AI预测准确率",
+          "labels": ["实力差距大", "实力接近", "冷门/平局"],
+          "values": [90, 55, 20],
+          "y_axis_label": "准确率 (%)"
+        },
+        "animation": "fade_in",
+        "components": [
+          {
+            "type": "badge",
+            "text": "65.7% 总体命中率",
+            "position": "top_center",
+            "color": "#F5A623"
+          }
+        ]
+      },
+      "transition_in": "zoom_in",
+      "transition_out": "fade"
+    },
+    {
+      "scene_id": 5,
+      "narration": "更有意思的是Libet实验的启示。1983年发表在Brain上的研究发现，大脑在意识到想动之前0.3秒就已经出现了准备电位。球员的临场决策可能在意识层面之前就被无意识神经活动决定了。这意味着即使没有外部编剧，球员自己也不是完全自由的作者。AI捕捉到的那些统计规律，可能正是这种无意识决定性的宏观表现。",
+      "duration": 20,
+      "visual": {
+        "type": "animation",
+        "animation_source": "libet_experiment",
+        "overlay_components": [
+          {
+            "type": "label",
+            "text": "意识前 0.3 秒 = 准备电位",
+            "position": "bottom_center",
+            "color": "#4A90D9"
+          }
+        ]
+      },
+      "transition_in": "fade",
+      "transition_out": "slide_left"
+    },
+    {
+      "scene_id": 6,
+      "narration": "所以当有人说足球是被设计好的，我的回应是：没有证据表明有编剧，但有充分证据表明它是被决定的——只不过这种决定性被混沌放大到了不可精确预测的程度。AI的65.7%命中率，就是在决定性和混沌性之间找到的平衡点。它不证明足球是游戏，只证明足球是有规律的复杂系统。",
+      "duration": 18,
+      "visual": {
+        "type": "text_card",
+        "title": "没有编剧，但有规律",
+        "subtitle": "AI 65.7% = 决定性与混沌性的平衡点",
+        "animation": "bounce_in"
+      },
+      "transition_in": "slide_left",
+      "transition_out": "fade"
+    },
+    {
+      "scene_id": 7,
+      "narration": "而那35%的不可预测性，既不是设计的留白，也不是决定的漏洞，它是混沌系统赠予人类的礼物。正是因为无法被完全计算，勇气、奇迹和情感才有了栖身之所。",
+      "duration": 14,
+      "visual": {
+        "type": "text_card",
+        "title": "35% 的不可预测",
+        "subtitle": "勇气、奇迹与情感的栖身之所",
+        "animation": "fade_in_zoom",
+        "components": [
+          {
+            "type": "badge",
+            "text": "混沌的礼物",
+            "position": "top_center",
+            "color": "#F5A623"
+          }
+        ]
+      },
+      "transition_in": "fade",
+      "transition_out": "zoom_out"
+    }
+  ],
+  "outro": {
+    "duration": 8,
+    "narration": "那么下一个问题自然就来了：既然足球不是被设计的，但又是被决定的，那人类到底能不能预测未来？天气预报最多准7天，凭什么AI敢说能对世界杯做出有效预测？这背后的理论边界，比我们想象的更清晰。",
+    "visual": {
+      "type": "cta_card",
+      "text": "人类能预测未来吗？",
+      "animation": "fade_in_zoom"
+    },
+    "transition_in": "zoom_out"
+  }
+}

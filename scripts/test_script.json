@@ -1,0 +1,87 @@
+{
+  "video_id": "test_001",
+  "title": "测试视频",
+  "resolution": {
+    "width": 1080,
+    "height": 1920
+  },
+  "fps": 30,
+  "template": "data_visual_style",
+  "global_style": {
+    "font_family": "Noto Sans SC, sans-serif",
+    "primary_color": "#4A90D9",
+    "accent_color": "#F5A623",
+    "bg_color": "#0F1923",
+    "text_color": "#E0E7FF"
+  },
+  "voice": {
+    "provider": "edge-tts",
+    "voice_name": "zh-CN-YunxiNeural",
+    "rate": "+10%",
+    "pitch": "+0Hz",
+    "volume": "+0%"
+  },
+  "subtitle_style": {
+    "font_size": 42,
+    "font_family": "Noto Sans SC, sans-serif",
+    "color": "#FFFFFF",
+    "highlight_color": "#F5A623",
+    "stroke_color": "#000000",
+    "stroke_width": 3,
+    "animation": "bounce",
+    "position": "bottom",
+    "offset_y": 180,
+    "max_width": 900
+  },
+  "scenes": [
+    {
+      "scene_id": 1,
+      "narration": "这是一个测试场景，用于验证视频渲染流程。",
+      "duration": 5,
+      "visual": {
+        "type": "text_card",
+        "title": "测试场景",
+        "subtitle": "验证渲染流程",
+        "animation": "fade_in_zoom"
+      },
+      "transition_in": "fade",
+      "transition_out": "slide_left"
+    },
+    {
+      "scene_id": 2,
+      "narration": "第二个场景，测试图表展示功能。",
+      "duration": 5,
+      "visual": {
+        "type": "chart",
+        "chart_type": "bar",
+        "data": {
+          "title": "测试数据",
+          "labels": [
+            "A",
+            "B",
+            "C"
+          ],
+          "values": [
+            30,
+            50,
+            20
+          ],
+          "y_axis_label": "占比 (%)"
+        },
+        "animation": "fade_in"
+      },
+      "transition_in": "slide_left",
+      "transition_out": "fade"
+    }
+  ],
+  "outro": {
+    "duration": 5,
+    "narration": "感谢观看。",
+    "visual": {
+      "type": "cta_card",
+      "text": "感谢观看",
+      "animation": "fade_in_zoom"
+    },
+    "transition_in": "fade"
+  }
+}

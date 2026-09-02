@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>科普视频自动化生产 — 技术架构设计</title>
+<style>
+  :root {
+    --bg: #f5f5fa;
+    --surface: #ffffff;
+    --sidebar: #16162a;
+    --sidebar-text: #c8c8e0;
+    --sidebar-active: #8b5cf6;
+    --primary: #7c3aed;
+    --primary-light: #ede9fe;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --code-bg: #1e1e2e;
+    --code-text: #e0e0f0;
+    --code-key: #c792ea;
+    --code-str: #c3e88d;
+    --code-num: #f78c6c;
+    --code-com: #546e7a;
+    --table-stripe: #f9f9fc;
+    --green: #10b981;
+    --orange: #f59e0b;
+    --blue: #0ea5e9;
+    --radius: 8px;
+    --font-sans: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    --font-mono: "SF Mono", "JetBrains Mono", "Fira Code", monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  /* Sidebar */
+  .sidebar {
+    position: fixed; left: 0; top: 0; width: 260px; height: 100vh;
+    background: var(--sidebar); overflow-y: auto; z-index: 100;
+    padding: 24px 0;
+  }
+  .sidebar h2 {
+    color: #fff; font-size: 16px; padding: 0 24px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 16px;
+  }
+  .sidebar a {
+    display: block; color: var(--sidebar-text); text-decoration: none;
+    padding: 8px 24px; font-size: 13px; transition: all .2s;
+    border-left: 3px solid transparent;
+  }
+  .sidebar a:hover { color: #fff; background: rgba(139,92,246,0.1); border-left-color: var(--sidebar-active); }
+  .sidebar .nav-section { padding: 12px 24px 4px; font-size: 11px; text-transform: uppercase; color: #6b7280; letter-spacing: 1px; }
+  /* Main */
+  .main { margin-left: 260px; padding: 40px 48px; max-width: 960px; }
+  section { margin-bottom: 56px; scroll-margin-top: 20px; }
+  h1 { font-size: 28px; margin-bottom: 8px; }
+  h2 { font-size: 22px; margin: 32px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--primary); }
+  h3 { font-size: 17px; margin: 24px 0 12px; color: var(--primary); }
+  h4 { font-size: 15px; margin: 16px 0 8px; }
+  p { margin-bottom: 12px; }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  /* Code */
+  pre {
+    background: var(--code-bg); color: var(--code-text); border-radius: var(--radius);
+    padding: 18px 20px; overflow-x: auto; font-family: var(--font-mono);
+    font-size: 13px; line-height: 1.6; margin: 12px 0;
+  }
+  code { font-family: var(--font-mono); }
+  .inline-code { background: var(--primary-light); color: var(--primary); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+  /* Table */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+  th { background: var(--primary); color: #fff; padding: 10px 12px; text-align: left; font-weight: 600; }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  tr:nth-child(even) td { background: var(--table-stripe); }
+  /* Cards */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 16px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .card h4 { color: var(--primary); margin-bottom: 8px; }
+  .card ul { padding-left: 16px; font-size: 13px; color: var(--muted); }
+  .card li { margin-bottom: 4px; }
+  /* Badge */
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .badge-green { background: #d1fae5; color: #065f46; }
+  .badge-blue { background: #dbeafe; color: #1e40af; }
+  .badge-orange { background: #fef3c7; color: #92400e; }
+  .badge-purple { background: var(--primary-light); color: var(--primary); }
+  /* Note */
+  .note { background: #fffbeb; border-left: 4px solid var(--orange); padding: 12px 16px; border-radius: 0 var(--radius) var(--radius) 0; margin: 12px 0; font-size: 14px; }
+  .note strong { color: #92400e; }
+  /* Diagram */
+  .diagram { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin: 16px 0; }
+  .diagram svg { width: 100%; height: auto; }
+  /* Tree */
+  .tree { font-family: var(--font-mono); font-size: 13px; line-height: 1.8; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 24px; }
+  .tree .dir { color: var(--primary); font-weight: 600; }
+  .tree .file { color: var(--text); }
+  .tree .comment { color: var(--code-com); }
+  /* Phase */
+  .phase { display: flex; gap: 0; margin: 16px 0; }
+  .phase-item { flex: 1; background: var(--surface); border: 1px solid var(--border); padding: 16px; position: relative; }
+  .phase-item:not(:last-child)::after { content: '→'; position: absolute; right: -12px; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 20px; z-index: 1; background: var(--bg); padding: 0 4px; }
+  .phase-item h4 { color: var(--primary); margin-bottom: 8px; }
+  .phase-item .duration { font-size: 12px; color: var(--muted); }
+  .phase-item ul { font-size: 13px; padding-left: 16px; color: var(--muted); }
+  /* Color swatch */
+  .swatch { display: inline-block; width: 16px; height: 16px; border-radius: 3px; vertical-align: middle; margin-right: 6px; border: 1px solid rgba(0,0,0,0.1); }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <h2>技术架构设计</h2>
+  <a href="#overview">1. 项目概述</a>
+  <a href="#tech-stack">2. 技术栈选型</a>
+  <div class="nav-section">架构</div>
+  <a href="#architecture">3. 系统架构</a>
+  <a href="#data-flow">4. 数据流设计</a>
+  <a href="#project-structure">5. 项目结构</a>
+  <div class="nav-section">规范</div>
+  <a href="#script-schema">6. script.json 规范</a>
+  <div class="nav-section">模块设计</div>
+  <a href="#mod-tts">7.1 TTS 语音合成</a>
+  <a href="#mod-remotion">7.2 Remotion 渲染引擎</a>
+  <a href="#mod-scenes">7.3 场景组件库</a>
+  <a href="#mod-subtitle">7.4 字幕动画</a>
+  <a href="#mod-transition">7.5 转场效果</a>
+  <a href="#mod-template">7.6 视觉模板</a>
+  <a href="#mod-asset">7.7 素材管理</a>
+  <a href="#mod-orchestrator">7.8 流水线编排</a>
+  <div class="nav-section">实现</div>
+  <a href="#skills">8. Skills 实现方案</a>
+  <a href="#templates">9. 视觉模板规格</a>
+  <a href="#config">10. 配置管理</a>
+  <a href="#deployment">11. 部署方案</a>
+  <a href="#roadmap">12. 开发路线图</a>
+</nav>
+
+<!-- Main Content -->
+<main class="main">
+
+<!-- 1. Overview -->
+<section id="overview">
+  <h1>科普视频自动化生产 — 技术架构设计</h1>
+  <p class="subtitle">Remotion 驱动的高质量视频生成流水线 | 2026-09</p>
+
+  <h2>1. 项目概述</h2>
+  <h3>1.1 项目目标</h3>
+  <p>构建一套自动化视频生产流水线：输入手动编排的 <span class="inline-code">script.json</span> 分镜脚本，输出高质量的科普短视频 MP4 文件。支持批量生产，每天产出多个视频且画面风格不重复。</p>
+
+  <h3>1.2 核心需求</h3>
+  <table>
+    <tr><th>需求</th><th>技术方案</th><th>实现模块</th></tr>
+    <tr><td>语音音色选择 + 语速变速</td><td>edge-tts（500+音色，rate 参数）</td><td>TTS 模块</td></tr>
+    <tr><td>字幕变色 + 跳动动画</td><td>Remotion React 组件渲染</td><td>字幕组件</td></tr>
+    <tr><td>高级画面 + 丰富组件</td><td>ECharts / Lottie / SVG / AI图片</td><td>场景组件库</td></tr>
+    <tr><td>转场好看</td><td>@remotion/transitions + 自定义动画</td><td>转场组件</td></tr>
+    <tr><td>避免同质化</td><td>5套视觉模板轮换 + 多素材源</td><td>模板系统</td></tr>
+    <tr><td>script.json → MP4</td><td>@remotion/renderer 批量渲染</td><td>流水线编排</td></tr>
+  </table>
+
+  <h3>1.3 设计原则</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>模块化</h4>
+      <ul>
+        <li>每个功能独立为 Skill</li>
+        <li>可单独调用或组合使用</li>
+        <li>接口清晰，低耦合</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>数据驱动</h4>
+      <ul>
+        <li>script.json 驱动一切</li>
+        <li>模板决定视觉风格</li>
+        <li>参数化渲染</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>可扩展</h4>
+      <ul>
+        <li>场景类型可插拔</li>
+        <li>模板可自定义</li>
+        <li>TTS 可换提供商</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>批量生产</h4>
+      <ul>
+        <li>CLI 一键生成</li>
+        <li>模板轮换策略</li>
+        <li>素材缓存机制</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 2. Tech Stack -->
+<section id="tech-stack">
+  <h2>2. 技术栈选型</h2>
+  <table>
+    <tr><th>层级</th><th>技术</th><th>版本</th><th>用途</th></tr>
+    <tr><td>视频框架</td><td>Remotion</td><td>v4.x</td><td>React 组件 → 视频帧 → MP4</td></tr>
+    <tr><td>语言</td><td>TypeScript</td><td>5.x</td><td>全链路类型安全</td></tr>
+    <tr><td>语音合成</td><td>edge-tts (Python)</td><td>最新</td><td>TTS + 词级时间戳</td></tr>
+    <tr><td>图表</td><td>ECharts</td><td>5.x</td><td>数据可视化（SVG 模式）</td></tr>
+    <tr><td>动画</td><td>@remotion/lottie</td><td>4.x</td><td>Lottie JSON 动画播放</td></tr>
+    <tr><td>转场</td><td>@remotion/transitions</td><td>4.x</td><td>场景间转场效果</td></tr>
+    <tr><td>渲染器</td><td>@remotion/renderer</td><td>4.x</td><td>Node API 批量渲染</td></tr>
+    <tr><td>打包</td><td>@remotion/bundler</td><td>4.x</td><td>项目打包</td></tr>
+    <tr><td>素材API</td><td>Pexels / Unsplash</td><td>REST</td><td>免费高清图片素材</td></tr>
+    <tr><td>AI图片</td><td>Stability AI / Flux</td><td>REST</td><td>定制概念图生成</td></tr>
+    <tr><td>视频编码</td><td>FFmpeg（Remotion 内置）</td><td>—</td><td>H.264 编码输出</td></tr>
+    <tr><td>容器</td><td>Docker</td><td>—</td><td>环境封装</td></tr>
+  </table>
+
+  <div class="note">
+    <strong>许可提醒：</strong>Remotion 对个人和小团队（≤3人）免费，更大团队需购买 Company License。商用前请确认 <a href="https://github.com/remotion-dev/remotion">Remotion License</a> 条款。
+  </div>
+</section>
+
+<!-- 3. System Architecture -->
+<section id="architecture">
+  <h2>3. 系统架构</h2>
+  <p>整体采用<strong>流水线架构</strong>，由 8 个模块组成，通过 Node.js 编排器串联：</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 720 460" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+          <path d="M1 1 L7 4 L1 7 Z" fill="#7c3aed"/>
+        </marker>
+      </defs>
+      <!-- Input -->
+      <rect x="280" y="10" width="160" height="40" rx="8" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+      <text x="360" y="35" text-anchor="middle" font-size="14" font-weight="700" fill="#7c3aed" font-family="sans-serif">script.json 分镜脚本</text>
+      <line x1="360" y1="50" x2="360" y2="65" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr)"/>
+
+      <!-- Step 1: TTS -->
+      <rect x="100" y="70" width="200" height="80" rx="8" fill="#dbeafe" stroke="#0ea5e9" stroke-width="1.5"/>
+      <text x="200" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#0ea5e9" font-family="sans-serif">TTS 语音合成</text>
+      <text x="200" y="112" text-anchor="middle" font-size="12" fill="#1a1a2e" font-family="sans-serif">edge-tts</text>
+      <text x="200" y="130" text-anchor="middle" font-size="11" fill="#6b7280" font-family="sans-serif">音频 + 词级时间戳</text>
+
+      <!-- Step 2: Assets -->
+      <rect x="420" y="70" width="200" height="80" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="520" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#f59e0b" font-family="sans-serif">素材管理</text>
+      <text x="520" y="112" text-anchor="middle" font-size="12" fill="#1a1a2e" font-family="sans-serif">Pexels / Unsplash / AI</text>
+      <text x="520" y="130" text-anchor="middle" font-size="11" fill="#6b7280" font-family="sans-serif">图片 + Lottie + 字体</text>
+
+      <!-- Arrows to Remotion -->
+      <line x1="200" y1="150" x2="290" y2="180" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="520" y1="150" x2="430" y2="180" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- Step 3: Remotion -->
+      <rect x="140" y="185" width="440" height="200" rx="12" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+      <text x="360" y="210" text-anchor="middle" font-size="15" font-weight="700" fill="#7c3aed" font-family="sans-serif">Remotion 渲染引擎</text>
+
+      <!-- Sub-modules inside Remotion -->
+      <rect x="160" y="225" width="125" height="70" rx="6" fill="#fff" stroke="#7c3aed" stroke-width="1"/>
+      <text x="222" y="247" text-anchor="middle" font-size="13" font-weight="600" fill="#7c3aed" font-family="sans-serif">场景组件</text>
+      <text x="222" y="267" text-anchor="middle" font-size="11" fill="#6b7280" font-family="sans-serif">TextCard / Chart</text>
+      <text x="222" y="283" text-anchor="middle" font-size="11" fill="#6b7280" font-family="sans-serif">Animation / Image</text>
+
+      <rect x="298" y="225" width="125" height="70" rx="6" fill="#fff" stroke="#f59e0b" stroke-width="1"/>
+      <text x="360" y="247" text-anchor="middle" font-size="13" font-weight="600" fill="#f59e0b" font-family="sans-serif">字幕动画</text>
+      <text x="360" y="267" text-anchor="middle" font-size="11" fill="#6b7280" font-family="sans-serif">变色 + 跳动</text>
+      <text x="360" y="283" text-anchor="middle" font-size="11" fill="#6b7280" font-family="sans-serif">词级高亮同步</text>
+
+      <rect x="436" y="225" width="125" height="70" rx="6" fill="#fff" stroke="#0ea5e9" stroke-width="1"/>
+      <text x="498" y="247" text-anchor="middle" font-size="13" font-weight="600" fill="#0ea5e9" font-family="sans-serif">转场效果</text>
+      <text x="498" y="267" text-anchor="middle" font-size="11" fill="#6b7280" font-family="sans-serif">Fade / Slide / Zoom</text>
+      <text x="498" y="283" text-anchor="middle" font-size="11" fill="#6b7280" font-family="sans-serif">Spring 弹性</text>
+
+      <!-- Template bar -->
+      <rect x="160" y="310" width="400" height="30" rx="6" fill="#f8f9fa" stroke="#e5e7eb" stroke-width="1"/>
+      <text x="360" y="330" text-anchor="middle" font-size="12" fill="#6b7280" font-family="sans-serif">视觉模板系统（5套模板轮换）</text>
+
+      <!-- Audio track -->
+      <rect x="160" y="350" width="400" height="25" rx="6" fill="#f8f9fa" stroke="#e5e7eb" stroke-width="1"/>
+      <text x="360" y="367" text-anchor="middle" font-size="12" fill="#6b7280" font-family="sans-serif">音频轨道：旁白 + 背景音乐</text>
+
+      <!-- Arrow to output -->
+      <line x1="360" y1="385" x2="360" y2="410" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr)"/>
+
+      <!-- Output -->
+      <rect x="280" y="415" width="160" height="40" rx="8" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+      <text x="360" y="440" text-anchor="middle" font-size="14" font-weight="700" fill="#7c3aed" font-family="sans-serif">output.mp4</text>
+    </svg>
+  </div>
+
+  <h3>3.1 模块职责</h3>
+  <table>
+    <tr><th>模块</th><th>输入</th><th>输出</th><th>技术</th></tr>
+    <tr><td>TTS 语音合成</td><td>旁白文本 + 语音配置</td><td>MP3音频 + 词级时间戳</td><td>edge-tts (Python)</td></tr>
+    <tr><td>素材管理</td><td>素材需求描述</td><td>本地缓存图片/动画文件</td><td>Pexels/Unsplash/AI API</td></tr>
+    <tr><td>场景组件库</td><td>场景数据 + 帧号</td><td>React 组件渲染</td><td>Remotion + ECharts/Lottie</td></tr>
+    <tr><td>字幕动画</td><td>词级时间戳 + 样式</td><td>动画字幕组件</td><td>Remotion spring/interpolate</td></tr>
+    <tr><td>转场效果</td><td>转场类型 + 时长</td><td>场景间过渡动画</td><td>@remotion/transitions</td></tr>
+    <tr><td>视觉模板</td><td>模板名称</td><td>配色/字体/样式配置</td><td>TypeScript 配置对象</td></tr>
+    <tr><td>视频合成</td><td>全部组件 + 音频</td><td>MP4 文件</td><td>@remotion/renderer + FFmpeg</td></tr>
+    <tr><td>流水线编排</td><td>script.json</td><td>最终 MP4</td><td>Node.js CLI</td></tr>
+  </table>
+</section>
+
+<!-- 4. Data Flow -->
+<section id="data-flow">
+  <h2>4. 数据流设计</h2>
+  <p>流水线分 5 个步骤执行，每步的输出作为下一步的输入：</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+          <path d="M1 1 L7 4 L1 7 Z" fill="#7c3aed"/>
+        </marker>
+      </defs>
+      <!-- Step 1 -->
+      <rect x="10" y="40" width="130" height="80" rx="8" fill="#dbeafe" stroke="#0ea5e9" stroke-width="1.5"/>
+      <text x="75" y="60" text-anchor="middle" font-size="12" font-weight="700" fill="#0ea5e9" font-family="sans-serif">Step 1</text>
+      <text x="75" y="80" text-anchor="middle" font-size="12" fill="#1a1a2e" font-family="sans-serif">TTS 合成</text>
+      <text x="75" y="98" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">逐场景生成音频</text>
+      <text x="75" y="112" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">+ 词级时间戳</text>
+      <line x1="140" y1="80" x2="158" y2="80" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr2)"/>
+
+      <!-- Step 2 -->
+      <rect x="160" y="40" width="130" height="80" rx="8" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.5"/>
+      <text x="225" y="60" text-anchor="middle" font-size="12" font-weight="700" fill="#7c3aed" font-family="sans-serif">Step 2</text>
+      <text x="225" y="80" text-anchor="middle" font-size="12" fill="#1a1a2e" font-family="sans-serif">时长计算</text>
+      <text x="225" y="98" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">根据音频实际时长</text>
+      <text x="225" y="112" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">更新场景帧数</text>
+      <line x1="290" y1="80" x2="308" y2="80" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr2)"/>
+
+      <!-- Step 3 -->
+      <rect x="310" y="40" width="130" height="80" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="375" y="60" text-anchor="middle" font-size="12" font-weight="700" fill="#f59e0b" font-family="sans-serif">Step 3</text>
+      <text x="375" y="80" text-anchor="middle" font-size="12" fill="#1a1a2e" font-family="sans-serif">素材准备</text>
+      <text x="375" y="98" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">获取/缓存图片</text>
+      <text x="375" y="112" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">加载 Lottie/字体</text>
+      <line x1="440" y1="80" x2="458" y2="80" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr2)"/>
+
+      <!-- Step 4 -->
+      <rect x="460" y="40" width="130" height="80" rx="8" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.5"/>
+      <text x="525" y="60" text-anchor="middle" font-size="12" font-weight="700" fill="#7c3aed" font-family="sans-serif">Step 4</text>
+      <text x="525" y="80" text-anchor="middle" font-size="12" fill="#1a1a2e" font-family="sans-serif">Remotion 渲染</text>
+      <text x="525" y="98" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">组件 → 帧 → 视频</text>
+      <text x="525" y="112" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">含音频+字幕</text>
+      <line x1="590" y1="80" x2="608" y2="80" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr2)"/>
+
+      <!-- Step 5 -->
+      <rect x="610" y="40" width="100" height="80" rx="8" fill="#d1fae5" stroke="#10b981" stroke-width="1.5"/>
+      <text x="660" y="60" text-anchor="middle" font-size="12" font-weight="700" fill="#10b981" font-family="sans-serif">Step 5</text>
+      <text x="660" y="80" text-anchor="middle" font-size="12" fill="#1a1a2e" font-family="sans-serif">输出 MP4</text>
+      <text x="660" y="98" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">H.264 编码</text>
+      <text x="660" y="112" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">1080p / 30fps</text>
+
+      <!-- Data artifacts -->
+      <text x="75" y="160" text-anchor="middle" font-size="11" font-family="monospace" fill="#0ea5e9">audio/*.mp3</text>
+      <text x="75" y="175" text-anchor="middle" font-size="11" font-family="monospace" fill="#0ea5e9">timestamps.json</text>
+
+      <text x="225" y="160" text-anchor="middle" font-size="11" font-family="monospace" fill="#7c3aed">script_timing.json</text>
+      <text x="225" y="175" text-anchor="middle" font-size="11" fill="#6b7280" font-family="sans-serif">（含真实帧数）</text>
+
+      <text x="375" y="160" text-anchor="middle" font-size="11" font-family="monospace" fill="#f59e0b">assets/cache/*</text>
+      <text x="375" y="175" text-anchor="middle" font-size="11" fill="#6b7280" font-family="sans-serif">（图片/动画缓存）</text>
+
+      <text x="525" y="160" text-anchor="middle" font-size="11" font-family="monospace" fill="#7c3aed">frames/ (内部)</text>
+      <text x="525" y="175" text-anchor="middle" font-size="11" fill="#6b7280" font-family="sans-serif">（帧渲染+编码）</text>
+
+      <text x="660" y="160" text-anchor="middle" font-size="11" font-family="monospace" fill="#10b981">final/*.mp4</text>
+      <text x="660" y="175" text-anchor="middle" font-size="11" fill="#6b7280" font-family="sans-serif">（最终输出）</text>
+
+      <!-- Legend -->
+      <line x1="10" y1="210" x2="710" y2="210" stroke="#e5e7eb" stroke-width="1"/>
+      <text x="10" y="235" font-size="13" font-weight="600" fill="#1a1a2e" font-family="sans-serif">关键约束：</text>
+      <text x="10" y="255" font-size="12" fill="#6b7280" font-family="sans-serif">• Step 1 必须在 Step 4 之前完成（Remotion 需要音频文件和时间戳来同步字幕）</text>
+      <text x="10" y="273" font-size="12" fill="#6b7280" font-family="sans-serif">• Step 2 根据实际音频时长更新场景 durationInFrames（帧数 = 时长秒 × fps）</text>
+    </svg>
+  </div>
+</section>
+
+<!-- 5. Project Structure -->
+<section id="project-structure">
+  <h2>5. 项目结构</h2>
+  <div class="tree">
+<span class="dir">aiautovideo/</span>
+├── <span class="file">package.json</span>                    <span class="comment"># 项目依赖与脚本</span>
+├── <span class="file">tsconfig.json</span>                   <span class="comment"># TypeScript 配置</span>
+├── <span class="file">remotion.config.ts</span>             <span class="comment"># Remotion 配置</span>
+├── <span class="file">.env.example</span>                    <span class="comment"># 环境变量模板</span>
+├── <span class="dir">src/</span>
+│   ├── <span class="file">index.ts</span>                    <span class="comment"># Remotion 入口 (registerRoot)</span>
+│   ├── <span class="file">Root.tsx</span>                    <span class="comment"># 根 Composition 定义</span>
+│   ├── <span class="file">VideoComposition.tsx</span>        <span class="comment"># 主视频合成组件</span>
+│   ├── <span class="dir">types/</span>
+│   │   └── <span class="file">script.ts</span>               <span class="comment"># script.json 完整 TypeScript 类型</span>
+│   ├── <span class="dir">components/</span>
+│   │   ├── <span class="file">Scene.tsx</span>               <span class="comment"># 场景分发器（根据 type 路由）</span>
+│   │   ├── <span class="dir">scenes/</span>
+│   │   │   ├── <span class="file">TextCardScene.tsx</span>  <span class="comment"># 标题卡片场景</span>
+│   │   │   ├── <span class="file">ChartScene.tsx</span>     <span class="comment"># ECharts 图表场景</span>
+│   │   │   ├── <span class="file">AnimationScene.tsx</span> <span class="comment"># Lottie 动画场景</span>
+│   │   │   ├── <span class="file">ImageScene.tsx</span>      <span class="comment"># 图片展示场景</span>
+│   │   │   └── <span class="file">MixedScene.tsx</span>      <span class="comment"># 混合内容场景</span>
+│   │   ├── <span class="file">Subtitle.tsx</span>            <span class="comment"># 动画字幕组件</span>
+│   │   ├── <span class="file">Transition.tsx</span>          <span class="comment"># 转场包装器</span>
+│   │   └── <span class="file">OutroScene.tsx</span>         <span class="comment"># 结尾/CTA 场景</span>
+│   ├── <span class="dir">templates/</span>
+│   │   ├── <span class="file">index.ts</span>                <span class="comment"># 模板注册表</span>
+│   │   ├── <span class="file">DataVisualStyle.ts</span>      <span class="comment"># 深色霓虹数据风</span>
+│   │   ├── <span class="file">IllustrationStyle.ts</span>   <span class="comment"># 浅色插画风</span>
+│   │   ├── <span class="file">CinematicStyle.ts</span>       <span class="comment"># 电影质感风</span>
+│   │   ├── <span class="file">MinimalStyle.ts</span>         <span class="comment"># 极简白底风</span>
+│   │   └── <span class="file">InfographicStyle.ts</span>    <span class="comment"># 信息图风</span>
+│   └── <span class="dir">utils/</span>
+│       ├── <span class="file">animations.ts</span>           <span class="comment"># 通用动画工具函数</span>
+│       ├── <span class="file">colors.ts</span>               <span class="comment"># 颜色工具</span>
+│       └── <span class="file">helpers.ts</span>              <span class="comment"># 辅助函数</span>
+├── <span class="dir">scripts/</span>                         <span class="comment"># 后端流水线脚本</span>
+│   ├── <span class="file">tts.py</span>                      <span class="comment"># TTS 合成 (Python edge-tts)</span>
+│   ├── <span class="file">tts.ts</span>                      <span class="comment"># TTS TypeScript 调用层</span>
+│   ├── <span class="file">assets.ts</span>                   <span class="comment"># 素材管理器</span>
+│   ├── <span class="file">render.ts</span>                   <span class="comment"># Remotion 渲染模块</span>
+│   ├── <span class="file">validate.ts</span>                <span class="comment"># 脚本校验器</span>
+│   └── <span class="file">pipeline.ts</span>                 <span class="comment"># 流水线编排器</span>
+├── <span class="dir">templates/</span>                       <span class="comment"># 静态素材</span>
+│   ├── <span class="dir">lottie/</span>                      <span class="comment"># Lottie JSON 动画文件</span>
+│   └── <span class="dir">fonts/</span>                       <span class="comment"># 字体文件 (.ttf/.otf)</span>
+├── <span class="dir">output/</span>                          <span class="comment"># 生成产物</span>
+│   ├── <span class="dir">audio/</span>                       <span class="comment"># TTS 音频文件</span>
+│   ├── <span class="dir">assets/</span>                      <span class="comment"># 缓存素材</span>
+│   └── <span class="dir">final/</span>                       <span class="comment"># 最终 MP4</span>
+├── <span class="dir">assets/</span>
+│   ├── <span class="dir">bgm/</span>                         <span class="comment"># 背景音乐文件</span>
+│   └── <span class="dir">config/</span>                      <span class="comment"># 配置文件</span>
+├── <span class="file">Dockerfile</span>
+├── <span class="file">docker-compose.yml</span>
+└── <span class="file">README.md</span>
+  </div>
+</section>
+
+<!-- 6. script.json Schema -->
+<section id="script-schema">
+  <h2>6. script.json 完整规范</h2>
+  <p>这是整个系统的<strong>核心数据契约</strong>。手动编写，驱动所有渲染行为。</p>
+
+  <h3>6.1 TypeScript 类型定义</h3>
+  <pre><code><span style="color:#c792ea">interface</span> <span style="color:#82aaff">ScriptData</span> {
+  video_id: <span style="color:#c3e88d">string</span>;
+  title: <span style="color:#c3e88d">string</span>;
+  resolution: { width: <span style="color:#c3e88d">number</span>; height: <span style="color:#c3e88d">number</span> };
+  fps: <span style="color:#c3e88d">number</span>;                          <span style="color:#546e7a">// 30 或 60</span>
+  template: <span style="color:#c3e88d">TemplateType</span>;                  <span style="color:#546e7a">// 视觉模板名称</span>
+
+  global_style: {
+    font_family: <span style="color:#c3e88d">string</span>;
+    primary_color: <span style="color:#c3e88d">string</span>;
+    accent_color: <span style="color:#c3e88d">string</span>;
+    bg_color: <span style="color:#c3e88d">string</span>;
+    text_color: <span style="color:#c3e88d">string</span>;
+  };
+
+  voice: {
+    provider: <span style="color:#c3e88d">'edge-tts'</span> | <span style="color:#c3e88d">'cosyvoice'</span>;
+    voice_name: <span style="color:#c3e88d">string</span>;              <span style="color:#546e7a">// 如 zh-CN-YunxiNeural</span>
+    rate: <span style="color:#c3e88d">string</span>;                    <span style="color:#546e7a">// 如 "+10%" / "-20%"</span>
+    pitch: <span style="color:#c3e88d">string</span>;                   <span style="color:#546e7a">// 如 "0Hz"</span>
+    volume: <span style="color:#c3e88d">string</span>;                   <span style="color:#546e7a">// 如 "0" (默认)</span>
+  };
+
+  bgm: {
+    file: <span style="color:#c3e88d">string</span>;                      <span style="color:#546e7a">// assets/bgm/ 下的文件名</span>
+    volume: <span style="color:#c3e88d">number</span>;                    <span style="color:#546e7a">// 0.0 ~ 1.0</span>
+    fade_in: <span style="color:#c3e88d">number</span>;                  <span style="color:#546e7a">// 秒</span>
+    fade_out: <span style="color:#c3e88d">number</span>;                 <span style="color:#546e7a">// 秒</span>
+  };
+
+  subtitle_style: {
+    font_size: <span style="color:#c3e88d">number</span>;
+    font_family: <span style="color:#c3e88d">string</span>;
+    color: <span style="color:#c3e88d">string</span>;                     <span style="color:#546e7a">// 已读文字颜色</span>
+    highlight_color: <span style="color:#c3e88d">string</span>;          <span style="color:#546e7a">// 当前词高亮颜色</span>
+    stroke_color: <span style="color:#c3e88d">string</span>;
+    stroke_width: <span style="color:#c3e88d">number</span>;
+    animation: <span style="color:#c3e88d">'bounce'</span> | <span style="color:#c3e88d">'slide'</span> | <span style="color:#c3e88d">'fade'</span> | <span style="color:#c3e88d">'pop'</span>;
+    position: <span style="color:#c3e88d">'bottom'</span> | <span style="color:#c3e88d">'center'</span> | <span style="color:#c3e88d">'top'</span>;
+    offset_y: <span style="color:#c3e88d">number</span>;                 <span style="color:#546e7a">// px 距离边缘</span>
+    max_width: <span style="color:#c3e88d">number</span>;                 <span style="color:#546e7a">// px 字幕最大宽度</span>
+  };
+
+  scenes: <span style="color:#c3e88d">Scene</span>[];
+  outro: <span style="color:#c3e88d">Outro</span>;
+}
+
+<span style="color:#c792ea">interface</span> <span style="color:#82aaff">Scene</span> {
+  scene_id: <span style="color:#c3e88d">number</span>;
+  narration: <span style="color:#c3e88d">string</span>;                    <span style="color:#546e7a">// 旁白文本（TTS 输入）</span>
+  duration: <span style="color:#c3e88d">number</span>;                     <span style="color:#546e7a">// 预估秒数（TTS 后更新为实际值）</span>
+
+  visual: <span style="color:#c3e88d">SceneVisual</span>;
+
+  transition_in: <span style="color:#c3e88d">TransitionType</span>;
+  transition_out: <span style="color:#c3e88d">TransitionType</span>;
+}
+
+<span style="color:#c792ea">type</span> <span style="color:#82aaff">SceneVisual</span> =
+  | { type: <span style="color:#c3e88d">'text_card'</span>; title: <span style="color:#c3e88d">string</span>; subtitle?: <span style="color:#c3e88d">string</span>;
+      bg_image?: <span style="color:#c3e88d">string</span>; animation: <span style="color:#c3e88d">string</span>;
+      components?: <span style="color:#c3e88d">OverlayComponent</span>[] }
+  | { type: <span style="color:#c3e88d">'chart'</span>; chart_type: <span style="color:#c3e88d">ChartType</span>;
+      data: <span style="color:#c3e88d">Record</span>&lt;<span style="color:#c3e88d">string</span>, <span style="color:#c3e88d">any</span>&gt;; animation: <span style="color:#c3e88d">string</span>;
+      components?: <span style="color:#c3e88d">OverlayComponent</span>[] }
+  | { type: <span style="color:#c3e88d">'animation'</span>; animation_source: <span style="color:#c3e88d">string</span>;
+      overlay_components?: <span style="color:#c3e88d">OverlayComponent</span>[] }
+  | { type: <span style="color:#c3e88d">'image'</span>; image_source: <span style="color:#c3e88d">string</span>;
+      effect: <span style="color:#c3e88d">'ken_burns'</span> | <span style="color:#c3e88d">'parallax'</span> | <span style="color:#c3e88d">'static'</span>;
+      overlay_components?: <span style="color:#c3e88d">OverlayComponent</span>[] }
+  | { type: <span style="color:#c3e88d">'mixed'</span>; elements: <span style="color:#c3e88d">MixedElement</span>[] };
+
+<span style="color:#c792ea">interface</span> <span style="color:#82aaff">OverlayComponent</span> {
+  type: <span style="color:#c3e88d">'label'</span> | <span style="color:#c3e88d">'arrow'</span> | <span style="color:#c3e88d">'highlight'</span> | <span style="color:#c3e88d">'badge'</span>;
+  text?: <span style="color:#c3e88d">string</span>;
+  position: <span style="color:#c3e88d">string</span>;                    <span style="color:#546e7a">// 如 "top_center" / {x,y}</span>
+  color?: <span style="color:#c3e88d">string</span>;
+  from?: <span style="color:#c3e88d">string</span>; to?: <span style="color:#c3e88d">string</span>;       <span style="color:#546e7a">// for arrow</span>
+}
+
+<span style="color:#c792ea">type</span> <span style="color:#82aaff">TransitionType</span> = <span style="color:#c3e88d">'fade'</span> | <span style="color:#c3e88d">'slide_left'</span> | <span style="color:#c3e88d">'slide_right'</span>
+  | <span style="color:#c3e88d">'slide_up'</span> | <span style="color:#c3e88d">'zoom_in'</span> | <span style="color:#c3e88d">'zoom_out'</span> | <span style="color:#c3e88d">'bounce'</span> | <span style="color:#c3e88d">'wipe'</span> | <span style="color:#c3e88d">'none'</span>;
+
+<span style="color:#c792ea">type</span> <span style="color:#82aaff">ChartType</span> = <span style="color:#c3e88d">'bar'</span> | <span style="color:#c3e88d">'line'</span> | <span style="color:#c3e88d">pie</span> | <span style="color:#c3e88d">'scatter'</span> | <span style="color:#c3e88d">'radar'</span> | <span style="color:#c3e88d">'spectrum'</span> | <span style="color:#c3e88d">'custom'</span>;
+
+<span style="color:#c792ea">type</span> <span style="color:#82aaff">TemplateType</span> = <span style="color:#c3e88d">'data_visual_style'</span> | <span style="color:#c3e88d">'illustration_style'</span>
+  | <span style="color:#c3e88d">'cinematic_style'</span> | <span style="color:#c3e88d">'minimal_style'</span> | <span style="color:#c3e88d">'infographic_style'</span>;
+
+<span style="color:#c792ea">interface</span> <span style="color:#82aaff">Outro</span> {
+  duration: <span style="color:#c3e88d">number</span>;
+  narration: <span style="color:#c3e88d">string</span>;
+  visual: { type: <span style="color:#c3e88d">'cta_card'</span>; text: <span style="color:#c3e88d">string</span>; animation: <span style="color:#c3e88d">string</span> };
+  transition_in: <span style="color:#c3e88d">TransitionType</span>;
+}</code></pre>
+
+  <h3>6.2 关键字段说明</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>说明</th><th>示例</th></tr>
+    <tr><td><code>template</code></td><td>enum</td><td>视觉模板名称，决定配色/字体/风格</td><td><code>"data_visual_style"</code></td></tr>
+    <tr><td><code>voice.rate</code></td><td>string</td><td>语速调节，-50% 到 +100%</td><td><code>"+10%"</code></td></tr>
+    <tr><td><code>voice.voice_name</code></td><td>string</td><td>edge-tts 音色名称</td><td><code>"zh-CN-YunxiNeural"</code></td></tr>
+    <tr><td><code>scenes[].duration</code></td><td>number</td><td>预估时长（秒），TTS 后自动更新</td><td><code>5.0</code></td></tr>
+    <tr><td><code>scenes[].visual.type</code></td><td>enum</td><td>场景画面类型</td><td><code>"chart"</code></td></tr>
+    <tr><td><code>subtitle_style.animation</code></td><td>enum</td><td>字幕动画类型</td><td><code>"bounce"</code></td></tr>
+    <tr><td><code>transition_in/out</code></td><td>enum</td><td>场景转场效果</td><td><code>"slide_left"</code></td></tr>
+    <tr><td><code>visual.components[]</code></td><td>array</td><td>画面叠加组件（标签/箭头/高亮）</td><td>见上方类型</td></tr>
+  </table>
+
+  <h3>6.3 运行时扩展字段</h3>
+  <p>以下字段由流水线自动填充，<strong>不需要手动编写</strong>：</p>
+  <pre><code><span style="color:#546e7a">// TTS 模块自动填充</span>
+interface <span style="color:#82aaff">SceneRuntime</span> <span style="color:#c792ea">extends</span> <span style="color:#82aaff">Scene</span> {
+  audio_file: <span style="color:#c3e88d">string</span>;               <span style="color:#546e7a">// 生成的音频文件路径</span>
+  audio_duration: <span style="color:#c3e88d">number</span>;            <span style="color:#546e7a">// 实际音频时长（秒）</span>
+  duration_in_frames: <span style="color:#c3e88d">number</span>;       <span style="color:#546e7a">// 帧数 = audio_duration × fps</span>
+  word_boundaries: <span style="color:#82aaff">WordBoundary</span>[];  <span style="color:#546e7a">// 词级时间戳</span>
+}
+
+interface <span style="color:#82aaff">WordBoundary</span> {
+  text: <span style="color:#c3e88d">string</span>;
+  offset_ms: <span style="color:#c3e88d">number</span>;     <span style="color:#546e7a">// 距场景开始的毫秒数</span>
+  duration_ms: <span style="color:#c3e88d">number</span>;    <span style="color:#546e7a">// 该词持续时间</span>
+}</code></pre>
+</section>
+
+<!-- 7.1 TTS Module -->
+<section id="mod-tts">
+  <h2>7.1 TTS 语音合成模块</h2>
+
+  <h3>功能职责</h3>
+  <p>接收每个场景的旁白文本和语音配置，调用 edge-tts 生成音频，并提取词级时间戳用于字幕同步。</p>
+
+  <h3>技术方案</h3>
+  <table>
+    <tr><th>项目</th><th>方案</th></tr>
+    <tr><td>TTS 引擎</td><td>Python <code>edge-tts</code>（WebSocket 调用微软 Edge 在线 TTS）</td></tr>
+    <tr><td>调用方式</td><td>Node.js 通过 <code>child_process.exec</code> 调用 Python 脚本</td></tr>
+    <tr><td>词级时间戳</td><td>edge-tts 的 <code>WordBoundary</code> 事件（offset/duration 单位：100ns）</td></tr>
+    <tr><td>音色数量</td><td>500+ 音色（中文 20+ 种）</td></tr>
+    <tr><td>语速控制</td><td><code>--rate "+10%"</code> 参数，范围 -50% ~ +100%</td></tr>
+    <tr><td>输出格式</td><td>MP3（24kHz / 48kbps / mono）</td></tr>
+  </table>
+
+  <h3>Python TTS 脚本 (<code>scripts/tts.py</code>)</h3>
+  <pre><code><span style="color:#c792ea">import</span> asyncio
+<span style="color:#c792ea">import</span> edge_tts
+<span style="color:#c792ea">import</span> json
+<span style="color:#c792ea">import</span> sys
+
+<span style="color:#c792ea">async def</span> <span style="color:#82aaff">synthesize</span>(text, voice, rate, pitch, volume, output_path):
+    communicate = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch, volume=volume)
+
+    audio_chunks = []
+    word_boundaries = []
+
+    <span style="color:#c792ea">async for</span> chunk <span style="color:#c792ea">in</span> communicate.stream():
+        <span style="color:#c792ea">if</span> chunk[<span style="color:#c3e88d">"type"</span>] == <span style="color:#c3e88d">"audio"</span>:
+            audio_chunks.append(chunk[<span style="color:#c3e88d">"data"</span>])
+        <span style="color:#c792ea">elif</span> chunk[<span style="color:#c3e88d">"type"</span>] == <span style="color:#c3e88d">"WordBoundary"</span>:
+            <span style="color:#546e7a"># offset/duration 单位为 100ns，转换为 ms</span>
+            word_boundaries.append({
+                <span style="color:#c3e88d">"text"</span>: chunk[<span style="color:#c3e88d">"text"</span>],
+                <span style="color:#c3e88d">"offset_ms"</span>: chunk[<span style="color:#c3e88d">"offset"</span>] / 10000,
+                <span style="color:#c3e88d">"duration_ms"</span>: chunk[<span style="color:#c3e88d">"duration"</span>] / 10000
+            })
+
+    <span style="color:#546e7a"># 写入音频文件</span>
+    <span style="color:#c792ea">with</span> open(output_path, <span style="color:#c3e88d">"wb"</span>) <span style="color:#c792ea">as</span> f:
+        f.write(b<span style="color:#c3e88d">""</span>.join(audio_chunks))
+
+    <span style="color:#546e7a"># 输出 JSON 结果到 stdout</span>
+    result = {
+        <span style="color:#c3e88d">"audio_file"</span>: output_path,
+        <span style="color:#c3e88d">"word_boundaries"</span>: word_boundaries,
+        <span style="color:#c3e88d">"word_count"</span>: len(word_boundaries)
+    }
+    print(json.dumps(result, ensure_ascii=<span style="color:#f78c6c">False</span>))
+
+<span style="color:#c792ea">if</span> __name__ == <span style="color:#c3e88d">"__main__"</span>:
+    <span style="color:#546e7a"># 参数: text|voice|rate|pitch|volume|output_path</span>
+    args = sys.argv[1:]
+    asyncio.run(synthesize(*args))</code></pre>
+
+  <h3>TypeScript 调用层 (<code>scripts/tts.ts</code>)</h3>
+  <pre><code><span style="color:#c792ea">import</span> { exec } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'child_process'</span>;
+<span style="color:#c792ea">import</span> { promisify } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'util'</span>;
+<span style="color:#c792ea">import</span> { getAudioDuration } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'./helpers'</span>;
+
+<span style="color:#c792ea">const</span> execAsync = promisify(exec);
+
+<span style="color:#c792ea">interface</span> <span style="color:#82aaff">TTSResult</span> {
+  audio_file: <span style="color:#c3e88d">string</span>;
+  audio_duration: <span style="color:#c3e88d">number</span>;
+  word_boundaries: WordBoundary[];
+}
+
+<span style="color:#c792ea">async function</span> <span style="color:#82aaff">synthesizeScene</span>(
+  sceneId: <span style="color:#c3e88d">number</span>,
+  narration: <span style="color:#c3e88d">string</span>,
+  voice: VoiceConfig,
+  outputDir: <span style="color:#c3e88d">string</span>
+): <span style="color:#82aaff">Promise</span>&lt;TTSResult&gt; {
+  <span style="color:#c792ea">const</span> outputFile = <span style="color:#c3e88d">`${outputDir}/scene_${sceneId}.mp3`</span>;
+  <span style="color:#c792ea">const</span> cmd = <span style="color:#c3e88d">`python3 scripts/tts.py "${narration}" `
+    + `${voice.voice_name} ${voice.rate} ${voice.pitch} ${voice.volume} ${outputFile}`</span>;
+
+  <span style="color:#c792ea">const</span> { stdout } = <span style="color:#c792ea">await</span> execAsync(cmd);
+  <span style="color:#c792ea">const</span> result = JSON.parse(stdout);
+
+  <span style="color:#c792ea">const</span> audio_duration = <span style="color:#c792ea">await</span> getAudioDuration(outputFile);
+
+  <span style="color:#c792ea">return</span> { ...result, audio_duration };
+}
+
+<span style="color:#c792ea">export async function</span> <span style="color:#82aaff">generateAllAudio</span>(
+  script: ScriptData,
+  outputDir: <span style="color:#c3e88d">string</span>
+): <span style="color:#82aaff">Promise</span>&lt;Map&lt;<span style="color:#c3e88d">number</span>, TTSResult&gt;&gt; {
+  <span style="color:#c792ea">const</span> results = <span style="color:#c792ea">new</span> Map();
+
+  <span style="color:#546e7a">// 并行合成所有场景音频（edge-tts 支持并发）</span>
+  <span style="color:#c792ea">const</span> tasks = script.scenes.map(scene =>
+    synthesizeScene(scene.scene_id, scene.narration, script.voice, outputDir)
+      .then(result => results.set(scene.scene_id, result))
+  );
+  <span style="color:#c792ea">await</span> Promise.all(tasks);
+
+  <span style="color:#c792ea">return</span> results;
+}</code></pre>
+
+  <h3>常用中文音色列表</h3>
+  <table>
+    <tr><th>音色名称</th><th>风格</th><th>性别</th></tr>
+    <tr><td>zh-CN-XiaoxiaoNeural</td><td>温暖/对话感</td><td>女</td></tr>
+    <tr><td>zh-CN-YunxiNeural</td><td>年轻/活力</td><td>男</td></tr>
+    <tr><td>zh-CN-YunjianNeural</td><td>沉稳/专业</td><td>男</td></tr>
+    <tr><td>zh-CN-XiaoyiNeural</td><td>活泼/轻松</td><td>女</td></tr>
+    <tr><td>zh-CN-YunyangNeural</td><td>新闻/播报</td><td>男</td></tr>
+    <tr><td>zh-CN-XiaochenNeural</td><td>成熟/冷静</td><td>女</td></tr>
+    <tr><td>zh-HK-HiuMaanNeural</td><td>粤语/自然</td><td>女</td></tr>
+  </table>
+</section>
+
+<!-- 7.2 Remotion Engine -->
+<section id="mod-remotion">
+  <h2>7.2 Remotion 渲染引擎</h2>
+
+  <h3>核心原理</h3>
+  <p>Remotion 将 React 组件渲染为每一帧的画面，通过 Chrome Headless 截图，再用 FFmpeg 编码为视频。每一帧的渲染由 <code>useCurrentFrame()</code> 驱动，是<strong>纯函数式</strong>的：相同输入永远产生相同输出。</p>
+
+  <h3>入口文件 (<code>src/index.ts</code>)</h3>
+  <pre><code><span style="color:#c792ea">import</span> { registerRoot } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'remotion'</span>;
+<span style="color:#c792ea">import</span> { Root } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'./Root'</span>;
+
+registerRoot(Root);</code></pre>
+
+  <h3>根组合 (<code>src/Root.tsx</code>)</h3>
+  <pre><code><span style="color:#c792ea">import</span> { Composition } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'remotion'</span>;
+<span style="color:#c792ea">import</span> { VideoComposition } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'./VideoComposition'</span>;
+<span style="color:#c792ea">import</span> <span style="color:#c3e88d">'./types/script'</span>;
+
+<span style="color:#c792ea">export const</span> <span style="color:#82aaff">Root</span> = () => (
+  &lt;Composition
+    id=<span style="color:#c3e88d">"MainVideo"</span>
+    component={VideoComposition}
+    durationInFrames={30 * 90}  <span style="color:#546e7a">// 默认 90 秒，运行时覆盖</span>
+    fps={30}
+    width={1080}
+    height={1920}
+    defaultProps={{
+      script: {} <span style="color:#c792ea">as</span> ScriptData,
+      audioResults: {} <span style="color:#c792ea">as</span> Record&lt;<span style="color:#c3e88d">number</span>, TTSResult&gt;,
+    }}
+  /&gt;
+);</code></pre>
+
+  <h3>主合成组件 (<code>src/VideoComposition.tsx</code>)</h3>
+  <pre><code><span style="color:#c792ea">import</span> { AbsoluteFill, Audio, Sequence, useVideoConfig } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'remotion'</span>;
+<span style="color:#c792ea">import</span> { TransitionSeries, linearTiming } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'@remotion/transitions'</span>;
+<span style="color:#c792ea">import</span> { fade, slide, wipe, zoom } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'@remotion/transitions/presentations'</span>;
+<span style="color:#c792ea">import</span> { Scene } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'./components/Scene'</span>;
+<span style="color:#c792ea">import</span> { AnimatedSubtitle } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'./components/Subtitle'</span>;
+<span style="color:#c792ea">import</span> { getTemplate } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'./templates'</span>;
+
+<span style="color:#c792ea">const</span> transitionMap = {
+  fade: fade(), slide_left: slide({ direction: <span style="color:#c3e88d">'from-right'</span> }),
+  slide_right: slide({ direction: <span style="color:#c3e88d">'from-left'</span> }),
+  slide_up: slide({ direction: <span style="color:#c3e88d">'from-bottom'</span> }),
+  zoom_in: zoom(), zoom_out: zoom(), wipe: wipe(), none: fade(),
+};
+
+<span style="color:#c792ea">export const</span> <span style="color:#82aaff">VideoComposition</span> = ({ script, audioResults }) =&gt; {
+  <span style="color:#c792ea">const</span> { fps } = useVideoConfig();
+  <span style="color:#c792ea">const</span> template = getTemplate(script.template);
+
+  <span style="color:#c792ea">let</span> currentFrame = 0;
+
+  <span style="color:#c792ea">return</span> (
+    &lt;AbsoluteFill style={{ backgroundColor: template.bg_color }}&gt;
+      &lt;TransitionSeries&gt;
+        {script.scenes.map((scene, i) =&gt; {
+          <span style="color:#c792ea">const</span> audio = audioResults[scene.scene_id];
+          <span style="color:#c792ea">const</span> durationInFrames = Math.ceil(audio.audio_duration * fps);
+          <span style="color:#c792ea">const</span> sceneStart = currentFrame;
+          currentFrame += durationInFrames;
+
+          <span style="color:#c792ea">return</span> (
+            &lt;React.Fragment key={scene.scene_id}&gt;
+              &lt;TransitionSeries.Sequence durationInFrames={durationInFrames}&gt;
+                &lt;AbsoluteFill&gt;
+                  &lt;Scene scene={scene} template={template} /&gt;
+                  &lt;AnimatedSubtitle
+                    words={audio.word_boundaries}
+                    sceneStartFrame={sceneStart}
+                    style={script.subtitle_style}
+                  /&gt;
+                &lt;/AbsoluteFill&gt;
+                &lt;Audio src={audio.audio_file} /&gt;
+              &lt;/TransitionSeries.Sequence&gt;
+              {i &lt; script.scenes.length - 1 &amp;&amp; (
+                &lt;TransitionSeries.Transition
+                  presentation={transitionMap[scene.transition_out]}
+                  timing={linearTiming({ durationInFrames: Math.floor(fps * 0.5) })}
+                /&gt;
+              )}
+            &lt;/React.Fragment&gt;
+          );
+        })}
+      &lt;/TransitionSeries&gt;
+
+      <span style="color:#546e7a">// 全局背景音乐</span>
+      {script.bgm &amp;&amp; (
+        &lt;Audio src={script.bgm.file} volume={script.bgm.volume} /&gt;
+      )}
+    &lt;/AbsoluteFill&gt;
+  );
+};</code></pre>
+
+  <h3>渲染 API (<code>scripts/render.ts</code>)</h3>
+  <pre><code><span style="color:#c792ea">import</span> { bundle } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'@remotion/bundler'</span>;
+<span style="color:#c792ea">import</span> { renderMedia, selectComposition } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'@remotion/renderer'</span>;
+<span style="color:#c792ea">import</span> path <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'path'</span>;
+
+<span style="color:#c792ea">export async function</span> <span style="color:#82aaff">renderVideo</span>(
+  script: ScriptData,
+  audioResults: Map&lt;<span style="color:#c3e88d">number</span>, TTSResult&gt;,
+  outputPath: <span style="color:#c3e88d">string</span>
+): <span style="color:#82aaff">Promise</span>&lt;<span style="color:#c3e88d">void</span>&gt; {
+  <span style="color:#546e7a">// Step 1: 打包 Remotion 项目</span>
+  <span style="color:#c792ea">const</span> bundleLocation = <span style="color:#c792ea">await</span> bundle({
+    entryPoint: path.resolve(__dirname, <span style="color:#c3e88d">'../src/index.ts'</span>),
+  });
+
+  <span style="color:#546e7a">// Step 2: 计算总帧数</span>
+  <span style="color:#c792ea">const</span> totalFrames = script.scenes.reduce((sum, s) =&gt; {
+    <span style="color:#c792ea">const</span> audio = audioResults.get(s.scene_id)!;
+    <span style="color:#c792ea">return</span> sum + Math.ceil(audio.audio_duration * script.fps);
+  }, 0);
+
+  <span style="color:#546e7a">// Step 3: 获取 Composition</span>
+  <span style="color:#c792ea">const</span> composition = <span style="color:#c792ea">await</span> selectComposition({
+    serveUrl: bundleLocation,
+    id: <span style="color:#c3e88d">'MainVideo'</span>,
+    inputProps: { script, audioResults: Object.fromEntries(audioResults) },
+  });
+
+  <span style="color:#546e7a">// Step 4: 渲染输出</span>
+  <span style="color:#c792ea">await</span> renderMedia({
+    serveUrl: bundleLocation,
+    composition: {
+      ...composition,
+      durationInFrames: totalFrames,
+      width: script.resolution.width,
+      height: script.resolution.height,
+      fps: script.fps,
+    },
+    codec: <span style="color:#c3e88d">'h264'</span>,
+    outputLocation: outputPath,
+    inputProps: { script, audioResults: Object.fromEntries(audioResults) },
+    onProgress: ({ progress }) =&gt; {
+      process.stdout.write(<span style="color:#c3e88d">`\r渲染进度: ${(progress * 100).toFixed(1)}%`</span>);
+    },
+  });
+
+  console.log(<span style="color:#c3e88d">`\n✅ 渲染完成: ${outputPath}`</span>);
+}</code></pre>
+</section>
+
+<!-- 7.3 Scene Components -->
+<section id="mod-scenes">
+  <h2>7.3 场景组件库</h2>
+  <p>5 种场景类型，每种对应一个 React 组件，由 <code>Scene.tsx</code> 分发器路由：</p>
+
+  <h3>场景分发器 (<code>src/components/Scene.tsx</code>)</h3>
+  <pre><code><span style="color:#c792ea">import</span> { TextCardScene } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'./scenes/TextCardScene'</span>;
+<span style="color:#c792ea">import</span> { ChartScene } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'./scenes/ChartScene'</span>;
+<span style="color:#c792ea">import</span> { AnimationScene } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'./scenes/AnimationScene'</span>;
+<span style="color:#c792ea">import</span> { ImageScene } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'./scenes/ImageScene'</span>;
+<span style="color:#c792ea">import</span> { MixedScene } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'./scenes/MixedScene'</span>;
+
+<span style="color:#c792ea">export const</span> <span style="color:#82aaff">Scene</span> = ({ scene, template }) =&gt; {
+  <span style="color:#c792ea">const</span> props = { scene, template };
+  <span style="color:#c792ea">switch</span> (scene.visual.type) {
+    <span style="color:#c792ea">case</span> <span style="color:#c3e88d">'text_card'</span>:  <span style="color:#c792ea">return</span> &lt;TextCardScene {...props} /&gt;
+    <span style="color:#c792ea">case</span> <span style="color:#c3e88d">'chart'</span>:       <span style="color:#c792ea">return</span> &lt;ChartScene {...props} /&gt;
+    <span style="color:#c792ea">case</span> <span style="color:#c3e88d">'animation'</span>:   <span style="color:#c792ea">return</span> &lt;AnimationScene {...props} /&gt;
+    <span style="color:#c792ea">case</span> <span style="color:#c3e88d">'image'</span>:       <span style="color:#c792ea">return</span> &lt;ImageScene {...props} /&gt;
+    <span style="color:#c792ea">case</span> <span style="color:#c3e88d">'mixed'</span>:       <span style="color:#c792ea">return</span> &lt;MixedScene {...props} /&gt;
+    <span style="color:#c792ea">default</span>:         <span style="color:#c792ea">return</span> &lt;TextCardScene {...props} /&gt;
+  }
+};</code></pre>
+
+  <h3>组件规格总览</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>TextCardScene</h4>
+      <ul>
+        <li>大标题 + 副标题</li>
+        <li>背景图/纯色</li>
+        <li>fade_in_zoom 动画</li>
+        <li>叠加组件支持</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>ChartScene</h4>
+      <ul>
+        <li>ECharts SVG 模式</li>
+        <li>7 种图表类型</li>
+        <li>逐帧驱动动画</li>
+        <li>progressive_reveal</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>AnimationScene</h4>
+      <ul>
+        <li>@remotion/lottie</li>
+        <li>Lottie JSON 驱动</li>
+        <li>叠加标签/箭头</li>
+        <li>自动帧同步</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>ImageScene</h4>
+      <ul>
+        <li>Ken Burns 效果</li>
+        <li>视差/静态</li>
+        <li>叠加标注</li>
+        <li>Pexels/AI 图片</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>MixedScene</h4>
+      <ul>
+        <li>图文混合布局</li>
+        <li>多元素组合</li>
+        <li>分区展示</li>
+        <li>最灵活的场景</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>ChartScene 实现要点</h3>
+  <pre><code><span style="color:#546e7a">// ECharts 在 Remotion 中必须使用 SVG 渲染模式（同步，确定性）</span>
+<span style="color:#546e7a">// 不能用 canvas 模式（异步 requestAnimationFrame 会导致帧不同步）</span>
+
+<span style="color:#c792ea">import</span> { useEffect, useRef, useState } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'react'</span>;
+<span style="color:#c792ea">import</span> { useCurrentFrame, useVideoConfig, interpolate, delayRender, continueRender } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'remotion'</span>;
+<span style="color:#c792ea">import</span> * <span style="color:#c792ea">as</span> echarts <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'echarts'</span>;
+
+<span style="color:#c792ea">export const</span> <span style="color:#82aaff">ChartScene</span> = ({ scene, template }) =&gt; {
+  <span style="color:#c792ea">const</span> containerRef = useRef&lt;HTMLDivElement&gt;(null);
+  <span style="color:#c792ea">const</span> chartRef = useRef&lt;echarts.ECharts&gt;();
+  <span style="color:#c792ea">const</span> [handle] = useState(() =&gt; delayRender(<span style="color:#c3e88d">'Loading chart'</span>));
+  <span style="color:#c792ea">const</span> frame = useCurrentFrame();
+  <span style="color:#c792ea">const</span> { fps } = useVideoConfig();
+
+  useEffect(() =&gt; {
+    <span style="color:#c792ea">if</span> (!containerRef.current) <span style="color:#c792ea">return</span>;
+    chartRef.current = echarts.init(containerRef.current, <span style="color:#c792ea">undefined</span>, {
+      renderer: <span style="color:#c3e88d">'svg'</span>,  <span style="color:#546e7a">// SVG 模式：同步、确定性</span>
+    });
+
+    <span style="color:#c792ea">const</span> option = buildChartOption(scene.visual.data, template, frame, fps);
+    chartRef.current.setOption(option);
+
+    <span style="color:#c792ea">const</span> timer = setTimeout(() =&gt; continueRender(handle), 100);
+    <span style="color:#c792ea">return</span> () =&gt; { clearTimeout(timer); chartRef.current?.dispose(); };
+  }, [frame]);
+
+  <span style="color:#c792ea">return</span> &lt;div ref={containerRef} style={{ width: <span style="color:#c3e88d">'100%'</span>, height: <span style="color:#c3e88d">'100%'</span> }} /&gt;;
+};
+
+<span style="color:#c792ea">function</span> <span style="color:#82aaff">buildChartOption</span>(data, template, frame, fps) {
+  <span style="color:#c792ea">const</span> progress = interpolate(frame, [0, fps], [0, 1], {
+    extrapolateRight: <span style="color:#c3e88d">'clamp'</span>,
+  });
+
+  <span style="color:#c792ea">return</span> {
+    ...data,
+    animation: <span style="color:#c792ea">false</span>,
+    color: template.chart_colors,
+    <span style="color:#546e7a">// 用 progress 驱动数据展示进度</span>
+    series: data.series?.map(s =&gt; ({
+      ...s,
+      data: s.data.map(v =&gt;
+        <span style="color:#c792ea">typeof</span> v === <span style="color:#c3e88d">'number'</span> ? v * progress : v
+      ),
+    })),
+  };
+}</code></pre>
+
+  <div class="note">
+    <strong>关键注意：</strong>ECharts 在 Remotion 中<strong>必须使用 SVG 渲染模式</strong>。Canvas 模式使用 requestAnimationFrame 异步渲染，会导致帧捕获时画面不完整。SVG 模式是同步的，确保每帧截图时图表已完整渲染。
+  </div>
+</section>
+
+<!-- 7.4 Subtitle -->
+<section id="mod-subtitle">
+  <h2>7.4 字幕动画组件</h2>
+  <p>字幕直接作为 React 组件渲染在画面上，利用 TTS 返回的词级时间戳实现逐字高亮和动画效果。</p>
+
+  <h3>核心实现 (<code>src/components/Subtitle.tsx</code>)</h3>
+  <pre><code><span style="color:#c792ea">import</span> {
+  useCurrentFrame, useVideoConfig, interpolate, spring, Easing
+} <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'remotion'</span>;
+
+<span style="color:#c792ea">interface</span> <span style="color:#82aaff">SubtitleProps</span> {
+  words: WordBoundary[];
+  sceneStartFrame: <span style="color:#c3e88d">number</span>;
+  style: SubtitleStyle;
+}
+
+<span style="color:#c792ea">export const</span> <span style="color:#82aaff">AnimatedSubtitle</span> = ({ words, sceneStartFrame, style }) =&gt; {
+  <span style="color:#c792ea">const</span> frame = useCurrentFrame();
+  <span style="color:#c792ea">const</span> { fps } = useVideoConfig();
+
+  <span style="color:#c792ea">const</span> relativeFrame = frame - sceneStartFrame;
+  <span style="color:#c792ea">const</span> currentTimeMs = relativeFrame / fps * 1000;
+
+  <span style="color:#c792ea">const</span> positionStyle = {
+    position: <span style="color:#c3e88d">'absolute'</span> <span style="color:#c792ea">as const</span>,
+    bottom: style.position === <span style="color:#c3e88d">'bottom'</span> ? style.offset_y : <span style="color:#c3e88d">undefined</span>,
+    top: style.position === <span style="color:#c3e88d">'top'</span> ? style.offset_y : <span style="color:#c3e88d">undefined</span>,
+    left: 0, right: 0,
+    textAlign: <span style="color:#c3e88d">'center'</span>,
+    maxWidth: style.max_width,
+    margin: <span style="color:#c3e88d">'0 auto'</span>,
+    fontFamily: style.font_family,
+    fontSize: style.font_size,
+    fontWeight: 700,
+    lineHeight: 1.4,
+    textShadow: <span style="color:#c3e88d">`-2px -2px 0 ${style.stroke_color}, `
+      + `2px -2px 0 ${style.stroke_color}, `
+      + `-2px 2px 0 ${style.stroke_color}, `
+      + `2px 2px 0 ${style.stroke_color}`</span>,
+  };
+
+  <span style="color:#c792ea">return</span> (
+    &lt;div style={positionStyle}&gt;
+      {words.map((word, i) =&gt; {
+        <span style="color:#c792ea">const</span> wordStartMs = word.offset_ms;
+        <span style="color:#c792ea">const</span> wordEndMs = word.offset_ms + word.duration_ms;
+        <span style="color:#c792ea">const</span> isActive = currentTimeMs &gt;= wordStartMs &amp;&amp; currentTimeMs &lt; wordEndMs;
+        <span style="color:#c792ea">const</span> isPast = currentTimeMs &gt;= wordEndMs;
+
+        <span style="color:#546e7a">// 计算动画值</span>
+        <span style="color:#c792ea">const</span> wordStartFrame = sceneStartFrame + Math.floor(wordStartMs / 1000 * fps);
+        <span style="color:#c792ea">let</span> scale = 1;
+        <span style="color:#c792ea">let</span> translateY = 0;
+
+        <span style="color:#c792ea">if</span> (isActive) {
+          <span style="color:#c792ea">switch</span> (style.animation) {
+            <span style="color:#c792ea">case</span> <span style="color:#c3e88d">'bounce'</span>:
+              scale = spring({
+                frame: frame - wordStartFrame, fps,
+                config: { damping: 12, stiffness: 200, mass: 0.8 },
+              });
+              <span style="color:#c792ea">break</span>;
+            <span style="color:#c792ea">case</span> <span style="color:#c3e88d">'pop'</span>:
+              scale = interpolate(frame - wordStartFrame, [0, 3, 6], [0.5, 1.2, 1.0], {
+                extrapolateRight: <span style="color:#c3e88d">'clamp'</span>,
+              });
+              <span style="color:#c792ea">break</span>;
+            <span style="color:#c792ea">case</span> <span style="color:#c3e88d">'slide'</span>:
+              translateY = interpolate(frame - wordStartFrame, [0, 5], [20, 0], {
+                extrapolateRight: <span style="color:#c3e88d">'clamp'</span>, easing: Easing.out(Easing.cubic),
+              });
+              <span style="color:#c792ea">break</span>;
+            <span style="color:#c792ea">case</span> <span style="color:#c3e88d">'fade'</span>:
+              scale = interpolate(frame - wordStartFrame, [0, 4], [0.8, 1], {
+                extrapolateRight: <span style="color:#c3e88d">'clamp'</span>,
+              });
+              <span style="color:#c792ea">break</span>;
+          }
+        }
+
+        <span style="color:#c792ea">const</span> color = isActive ? style.highlight_color : style.color;
+
+        <span style="color:#c792ea">return</span> (
+          &lt;span key={i} style={{
+            display: <span style="color:#c3e88d">'inline-block'</span>,
+            color,
+            transform: <span style="color:#c3e88d">`scale(${scale}) translateY(${translateY}px)`</span>,
+            margin: <span style="color:#c3e88d">'0 1px'</span>,
+          }}&gt;
+            {word.text}
+          &lt;/span&gt;
+        );
+      })}
+    &lt;/div&gt;
+  );
+};</code></pre>
+
+  <h3>动画效果说明</h3>
+  <table>
+    <tr><th>动画</th><th>效果</th><th>实现</th></tr>
+    <tr><td>bounce</td><td>当前词弹跳放大</td><td>spring() 物理弹性</td></tr>
+    <tr><td>pop</td><td>快速弹出再收回</td><td>interpolate 三段插值</td></tr>
+    <tr><td>slide</td><td>从下方滑入</td><td>translateY + Easing</td></tr>
+    <tr><td>fade</td><td>轻微缩放淡入</td><td>interpolate scale</td></tr>
+  </table>
+  <p>变色高亮：当前播放到的词用 <code>highlight_color</code>，已读和未读词用 <code>color</code>，实现逐字高亮跟随效果。</p>
+</section>
+
+<!-- 7.5 Transitions -->
+<section id="mod-transition">
+  <h2>7.5 转场效果系统</h2>
+  <p>使用 <code>@remotion/transitions</code> 的 <code>TransitionSeries</code> 实现场景间过渡，支持 8 种转场类型：</p>
+
+  <table>
+    <tr><th>转场类型</th><th>效果</th><th>实现 API</th></tr>
+    <tr><td>fade</td><td>淡入淡出</td><td><code>fade()</code></td></tr>
+    <tr><td>slide_left</td><td>从右向左滑入</td><td><code>slide({ direction: 'from-right' })</code></td></tr>
+    <tr><td>slide_right</td><td>从左向右滑入</td><td><code>slide({ direction: 'from-left' })</code></td></tr>
+    <tr><td>slide_up</td><td>从下向上滑入</td><td><code>slide({ direction: 'from-bottom' })</code></td></tr>
+    <tr><td>zoom_in</td><td>缩放放大过渡</td><td><code>zoom()</code></td></tr>
+    <tr><td>zoom_out</td><td>缩放缩小过渡</td><td><code>zoom()</code></td></tr>
+    <tr><td>wipe</td><td>擦除过渡</td><td><code>wipe()</code></td></tr>
+    <tr><td>bounce</td><td>弹性弹入</td><td>自定义 spring 动画</td></tr>
+    <tr><td>none</td><td>无转场（硬切）</td><td>—</td></tr>
+  </table>
+
+  <h3>转场时长</h3>
+  <p>默认转场持续 <strong>0.5 秒</strong>（15帧 @ 30fps），可通过 <code>linearTiming({ durationInFrames: N })</code> 调整。转场帧数从相邻两个场景中各取一半重叠渲染。</p>
+</section>
+
+<!-- 7.6 Templates -->
+<section id="mod-template">
+  <h2>7.6 视觉模板系统</h2>
+  <p>5 套视觉模板，每个模板定义完整的配色、字体、图表颜色、背景风格。script.json 的 <code>template</code> 字段选择使用哪套模板。</p>
+
+  <h3>模板注册表 (<code>src/templates/index.ts</code>)</h3>
+  <pre><code><span style="color:#c792ea">import</span> { DataVisualStyle } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'./DataVisualStyle'</span>;
+<span style="color:#c792ea">import</span> { IllustrationStyle } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'./IllustrationStyle'</span>;
+<span style="color:#c792ea">import</span> { CinematicStyle } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'./CinematicStyle'</span>;
+<span style="color:#c792ea">import</span> { MinimalStyle } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'./MinimalStyle'</span>;
+<span style="color:#c792ea">import</span> { InfographicStyle } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'./InfographicStyle'</span>;
+
+<span style="color:#c792ea">export const</span> templates = {
+  data_visual_style: DataVisualStyle,
+  illustration_style: IllustrationStyle,
+  cinematic_style: CinematicStyle,
+  minimal_style: MinimalStyle,
+  infographic_style: InfographicStyle,
+};
+
+<span style="color:#c792ea">export function</span> <span style="color:#82aaff">getTemplate</span>(name: <span style="color:#c3e88d">string</span>): TemplateConfig {
+  <span style="color:#c792ea">return</span> templates[name] || DataVisualStyle;
+}</code></pre>
+
+  <h3>模板配置结构</h3>
+  <pre><code><span style="color:#c792ea">interface</span> <span style="color:#82aaff">TemplateConfig</span> {
+  name: <span style="color:#c3e88d">string</span>;
+  bg_color: <span style="color:#c3e88d">string</span>;
+  text_color: <span style="color:#c3e88d">string</span>;
+  primary_color: <span style="color:#c3e88d">string</span>;
+  accent_color: <span style="color:#c3e88d">string</span>;
+  chart_colors: <span style="color:#c3e88d">string</span>[];      <span style="color:#546e7a">// ECharts 系列</span>
+  card_bg: <span style="color:#c3e88d">string</span>;
+  card_border: <span style="color:#c3e88d">string</span>;
+  title_font: <span style="color:#c3e88d">string</span>;
+  body_font: <span style="color:#c3e88d">string</span>;
+  bg_pattern?: <span style="color:#c3e88d">string</span>;       <span style="color:#546e7a">// 背景纹理（如 grid, dots）</span>
+  corner_radius: <span style="color:#c3e88d">number</span>;
+  shadow: <span style="color:#c3e88d">string</span>;
+}</code></pre>
+</section>
+
+<!-- 7.7 Asset Manager -->
+<section id="mod-asset">
+  <h2>7.7 素材管理模块</h2>
+  <p>统一管理图片素材的获取、AI 生成和本地缓存，支持多素材源。</p>
+
+  <h3>素材源</h3>
+  <table>
+    <tr><th>素材源</th><th>类型</th><th>API</th><th>免费额度</th></tr>
+    <tr><td>Pexels</td><td>实拍图片/视频</td><td>REST API</td><td>200次/小时</td></tr>
+    <tr><td>Unsplash</td><td>艺术图片</td><td>REST API</td><td>50次/小时</td></tr>
+    <tr><td>Stability AI</td><td>AI生成图片</td><td>REST API</td><td>按量付费</td></tr>
+    <tr><td>本地 Lottie</td><td>动画</td><td>文件读取</td><td>无限制</td></tr>
+    <tr><td>本地字体</td><td>字体文件</td><td>文件读取</td><td>无限制</td></tr>
+  </table>
+
+  <h3>素材管理器 (<code>scripts/assets.ts</code>)</h3>
+  <pre><code><span style="color:#c792ea">import</span> fs <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'fs/promises'</span>;
+<span style="color:#c792ea">import</span> path <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'path'</span>;
+<span style="color:#c792ea">import</span> crypto <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'crypto'</span>;
+
+<span style="color:#c792ea">const</span> CACHE_DIR = path.resolve(__dirname, <span style="color:#c3e88d">'../output/assets'</span>);
+
+<span style="color:#c792ea">export class</span> <span style="color:#82aaff">AssetManager</span> {
+  <span style="color:#c792ea">constructor</span>(private pexelsKey: <span style="color:#c3e88d">string</span>, private unsplashKey: <span style="color:#c3e88d">string</span>) {}
+
+  <span style="color:#c792ea">async</span> <span style="color:#82aaff">fetchImage</span>(query: <span style="color:#c3e88d">string</span>, source: <span style="color:#c3e88d">'pexels'</span> | <span style="color:#c3e88d">'unsplash'</span> = <span style="color:#c3e88d">'pexels'</span>): <span style="color:#82aaff">Promise</span>&lt;<span style="color:#c3e88d">string</span>&gt; {
+    <span style="color:#c792ea">const</span> cacheKey = crypto.createHash(<span style="color:#c3e88d">'md5'</span>).update(<span style="color:#c3e88d">`${source}_${query}`</span>).digest(<span style="color:#c3e88d">'hex'</span>);
+    <span style="color:#c792ea">const</span> cachedPath = path.join(CACHE_DIR, <span style="color:#c3e88d">`${cacheKey}.jpg`</span>);
+
+    <span style="color:#546e7a">// 检查缓存</span>
+    <span style="color:#c792ea">try</span> {
+      <span style="color:#c792ea">await</span> fs.access(cachedPath);
+      <span style="color:#c792ea">return</span> cachedPath;
+    } <span style="color:#c792ea">catch</span> { <span style="color:#546e7a">// cache miss</span> }
+
+    <span style="color:#546e7a">// 获取图片 URL</span>
+    <span style="color:#c792ea">const</span> imageUrl = source === <span style="color:#c3e88d">'pexels'</span>
+      ? <span style="color:#c792ea">await</span> this.searchPexels(query)
+      : <span style="color:#c792ea">await</span> this.searchUnsplash(query);
+
+    <span style="color:#546e7a">// 下载并缓存</span>
+    <span style="color:#c792ea">const</span> buffer = <span style="color:#c792ea">await</span> fetch(imageUrl).then(r =&gt; r.arrayBuffer());
+    <span style="color:#c792ea">await</span> fs.mkdir(path.dirname(cachedPath), { recursive: <span style="color:#c792ea">true</span> });
+    <span style="color:#c792ea">await</span> fs.writeFile(cachedPath, Buffer.from(buffer));
+
+    <span style="color:#c792ea">return</span> cachedPath;
+  }
+
+  <span style="color:#c792ea">private async</span> <span style="color:#82aaff">searchPexels</span>(query: <span style="color:#c3e88d">string</span>): <span style="color:#82aaff">Promise</span>&lt;<span style="color:#c3e88d">string</span>&gt; {
+    <span style="color:#c792ea">const</span> res = <span style="color:#c792ea">await</span> fetch(<span style="color:#c3e88d">`https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=1`</span>, {
+      headers: { Authorization: this.pexelsKey },
+    });
+    <span style="color:#c792ea">const</span> data = <span style="color:#c792ea">await</span> res.json();
+    <span style="color:#c792ea">return</span> data.photos[0]?.src?.large2x || data.photos[0]?.src?.large;
+  }
+
+  <span style="color:#c792ea">async</span> <span style="color:#82aaff">prepareAssets</span>(script: ScriptData): <span style="color:#82aaff">Promise</span>&lt;<span style="color:#c3e88d">void</span>&gt; {
+    <span style="color:#c792ea">for</span> (<span style="color:#c792ea">const</span> scene <span style="color:#c792ea">of</span> script.scenes) {
+      <span style="color:#c792ea">const</span> v = scene.visual;
+      <span style="color:#c792ea">if</span> (v.type === <span style="color:#c3e88d">'text_card'</span> &amp;&amp; v.bg_image?.startsWith(<span style="color:#c3e88d">'pexels:'</span>)) {
+        <span style="color:#c792ea">const</span> query = v.bg_image.replace(<span style="color:#c3e88d">'pexels:'</span>, <span style="color:#c3e88d">''</span>);
+        v.bg_image = <span style="color:#c792ea">await</span> this.fetchImage(query, <span style="color:#c3e88d">'pexels'</span>);
+      }
+      <span style="color:#c792ea">if</span> (v.type === <span style="color:#c3e88d">'image'</span> &amp;&amp; v.image_source?.startsWith(<span style="color:#c3e88d">'pexels:'</span>)) {
+        <span style="color:#c792ea">const</span> query = v.image_source.replace(<span style="color:#c3e88d">'pexels:'</span>, <span style="color:#c3e88d">''</span>);
+        v.image_source = <span style="color:#c792ea">await</span> this.fetchImage(query, <span style="color:#c3e88d">'pexels'</span>);
+      }
+    }
+  }
+}</code></pre>
+
+  <p>素材标识规则：在 script.json 中用前缀指定素材源，如 <code>"pexels:sky_blue_clouds"</code> 表示从 Pexels 搜索关键词 <code>sky_blue_clouds</code> 的图片。素材管理器解析前缀后自动获取并缓存。</p>
+</section>
+
+<!-- 7.8 Orchestrator -->
+<section id="mod-orchestrator">
+  <h2>7.8 流水线编排模块</h2>
+  <p>编排器是整个流水线的入口，串联所有模块，从 script.json 到最终 MP4：</p>
+
+  <h3>编排器 (<code>scripts/pipeline.ts</code>)</h3>
+  <pre><code><span style="color:#c792ea">import</span> { generateAllAudio } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'./tts'</span>;
+<span style="color:#c792ea">import</span> { AssetManager } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'./assets'</span>;
+<span style="color:#c792ea">import</span> { renderVideo } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'./render'</span>;
+<span style="color:#c792ea">import</span> { validateScript } <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'./validate'</span>;
+<span style="color:#c792ea">import</span> path <span style="color:#c792ea">from</span> <span style="color:#c3e88d">'path'</span>;
+
+<span style="color:#c792ea">export async function</span> <span style="color:#82aaff">generateVideo</span>(scriptPath: <span style="color:#c3e88d">string</span>): <span style="color:#82aaff">Promise</span>&lt;<span style="color:#c3e88d">string</span>&gt; {
+  <span style="color:#c792ea">const</span> outputDir = path.resolve(<span style="color:#c3e88d">'./output'</span>);
+  <span style="color:#c792ea">const</span> audioDir = path.join(outputDir, <span style="color:#c3e88d">'audio'</span>);
+  <span style="color:#c792ea">const</span> finalDir = path.join(outputDir, <span style="color:#c3e88d">'final'</span>);
+
+  <span style="color:#546e7a">// Step 0: 加载并校验脚本</span>
+  console.log(<span style="color:#c3e88d">'📋 Step 0: 加载并校验 script.json...'</span>);
+  <span style="color:#c792ea">const</span> script = <span style="color:#c792ea">await</span> loadScript(scriptPath);
+  validateScript(script);
+
+  <span style="color:#546e7a">// Step 1: TTS 语音合成（并行）</span>
+  console.log(<span style="color:#c3e88d">'🎙️  Step 1: 生成 TTS 语音...'</span>);
+  <span style="color:#c792ea">const</span> audioResults = <span style="color:#c792ea">await</span> generateAllAudio(script, audioDir);
+
+  <span style="color:#546e7a">// Step 2: 更新场景时长</span>
+  console.log(<span style="color:#c3e88d">'⏱️  Step 2: 计算实际时长...'</span>);
+  <span style="color:#c792ea">const</span> scriptWithTiming = updateDurations(script, audioResults);
+
+  <span style="color:#546e7a">// Step 3: 素材准备</span>
+  console.log(<span style="color:#c3e88d">'🖼️  Step 3: 准备素材...'</span>);
+  <span style="color:#c792ea">const</span> assetManager = <span style="color:#c792ea">new</span> AssetManager(process.env.PEXELS_KEY!, process.env.UNSPLASH_KEY!);
+  <span style="color:#c792ea">await</span> assetManager.prepareAssets(scriptWithTiming);
+
+  <span style="color:#546e7a">// Step 4: Remotion 渲染</span>
+  console.log(<span style="color:#c3e88d">'🎬 Step 4: Remotion 渲染中...'</span>);
+  <span style="color:#c792ea">const</span> outputPath = path.join(finalDir, <span style="color:#c3e88d">`${script.video_id}.mp4`</span>);
+  <span style="color:#c792ea">await</span> renderVideo(scriptWithTiming, audioResults, outputPath);
+
+  console.log(<span style="color:#c3e88d">`\n✅ 视频生成完成: ${outputPath}`</span>);
+  <span style="color:#c792ea">return</span> outputPath;
+}
+
+<span style="color:#546e7a">// CLI 入口</span>
+<span style="color:#c792ea">const</span> scriptPath = process.argv[2];
+<span style="color:#c792ea">if</span> (scriptPath) {
+  generateVideo(scriptPath).catch(console.error);
+}</code></pre>
+
+  <h3>CLI 使用方式</h3>
+  <pre><code><span style="color:#546e7a"># 单个视频生成</span>
+npx tsx scripts/pipeline.ts ./scripts/my_video.json
+
+<span style="color:#546e7a"># 批量生成（目录下所有 .json）</span>
+<span style="color:#c792ea">for</span> f <span style="color:#c792ea">in</span> ./scripts/batch/*.json; <span style="color:#c792ea">do</span>
+  npx tsx scripts/pipeline.ts <span style="color:#c3e88d">"$f"</span>
+<span style="color:#c792ea">done</span>
+
+<span style="color:#546e7a"># Remotion Studio 预览（开发调试用）</span>
+npx remotion studio</code></pre>
+</section>
+
+<!-- 8. Skills -->
+<section id="skills">
+  <h2>8. Skills 实现方案</h2>
+  <p>将系统拆分为 6 个独立 Skill，每个 Skill 可单独调用，也可由编排器组合使用：</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 720 380" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr3" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+          <path d="M1 1 L7 4 L1 7 Z" fill="#7c3aed"/>
+        </marker>
+      </defs>
+      <!-- Orchestrator at center top -->
+      <rect x="230" y="20" width="260" height="50" rx="8" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+      <text x="360" y="50" text-anchor="middle" font-size="14" font-weight="700" fill="#7c3aed" font-family="sans-serif">skill-pipeline-orchestrate</text>
+      <text x="360" y="42" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">流水线编排（入口）</text>
+
+      <!-- Arrows down -->
+      <line x1="360" y1="70" x2="360" y2="90" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr3)"/>
+      <line x1="120" y1="90" x2="600" y2="90" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4,4"/>
+      <line x1="120" y1="90" x2="120" y2="100" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr3)"/>
+      <line x1="280" y1="90" x2="280" y2="100" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr3)"/>
+      <line x1="440" y1="90" x2="440" y2="100" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr3)"/>
+      <line x1="600" y1="90" x2="600" y2="100" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr3)"/>
+
+      <!-- 4 Skills row -->
+      <rect x="30" y="105" width="180" height="80" rx="8" fill="#dbeafe" stroke="#0ea5e9" stroke-width="1.5"/>
+      <text x="120" y="125" text-anchor="middle" font-size="12" font-weight="700" fill="#0ea5e9" font-family="sans-serif">skill-tts-synthesis</text>
+      <text x="120" y="143" text-anchor="middle" font-size="11" fill="#1a1a2e" font-family="sans-serif">语音合成</text>
+      <text x="120" y="160" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">edge-tts + 词级时间戳</text>
+      <text x="120" y="175" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">输入:文本 → 输出:音频+时间戳</text>
+
+      <rect x="220" y="105" width="180" height="80" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="310" y="125" text-anchor="middle" font-size="12" font-weight="700" fill="#f59e0b" font-family="sans-serif">skill-asset-manager</text>
+      <text x="310" y="143" text-anchor="middle" font-size="11" fill="#1a1a2e" font-family="sans-serif">素材管理</text>
+      <text x="310" y="160" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">Pexels/Unsplash/AI</text>
+      <text x="310" y="175" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">输入:需求 → 输出:缓存文件</text>
+
+      <rect x="410" y="105" width="180" height="80" rx="8" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.5"/>
+      <text x="500" y="125" text-anchor="middle" font-size="12" font-weight="700" fill="#7c3aed" font-family="sans-serif">skill-video-renderer</text>
+      <text x="500" y="143" text-anchor="middle" font-size="11" fill="#1a1a2e" font-family="sans-serif">视频渲染</text>
+      <text x="500" y="160" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">@remotion/renderer</text>
+      <text x="500" y="175" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">输入:script+assets → 输出:MP4</text>
+
+      <rect x="600" y="105" width="110" height="80" rx="8" fill="#d1fae5" stroke="#10b981" stroke-width="1.5"/>
+      <text x="655" y="125" text-anchor="middle" font-size="11" font-weight="700" fill="#10b981" font-family="sans-serif">skill-script</text>
+      <text x="655" y="140" text-anchor="middle" font-size="11" fill="#1a1a2e" font-family="sans-serif">-validator</text>
+      <text x="655" y="160" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">脚本校验</text>
+      <text x="655" y="175" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">JSON Schema</text>
+
+      <!-- Internal components of renderer -->
+      <line x1="500" y1="185" x2="500" y2="200" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arr3)"/>
+
+      <!-- Renderer internal sub-skills -->
+      <rect x="370" y="205" width="130" height="55" rx="6" fill="#fff" stroke="#7c3aed" stroke-width="1"/>
+      <text x="435" y="225" text-anchor="middle" font-size="11" font-weight="600" fill="#7c3aed" font-family="sans-serif">skill-scene-render</text>
+      <text x="435" y="242" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">场景组件渲染</text>
+
+      <rect x="510" y="205" width="130" height="55" rx="6" fill="#fff" stroke="#7c3aed" stroke-width="1"/>
+      <text x="575" y="225" text-anchor="middle" font-size="11" font-weight="600" fill="#7c3aed" font-family="sans-serif">skill-subtitle-gen</text>
+      <text x="575" y="242" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">字幕动画生成</text>
+
+      <!-- Labels -->
+      <text x="120" y="220" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">独立可用</text>
+      <text x="310" y="220" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">独立可用</text>
+      <text x="655" y="220" text-anchor="middle" font-size="10" fill="#6b7280" font-family="sans-serif">独立可用</text>
+
+      <!-- Bottom: combined -->
+      <line x1="435" y1="260" x2="435" y2="275" stroke="#7c3aed" stroke-width="1.5"/>
+      <line x1="575" y1="260" x2="575" y2="275" stroke="#7c3aed" stroke-width="1.5"/>
+      <line x1="435" y1="275" x2="575" y2="275" stroke="#7c3aed" stroke-width="1.5"/>
+      <line x1="505" y1="275" x2="505" y2="290" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr3)"/>
+
+      <rect x="415" y="295" width="180" height="35" rx="6" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.5"/>
+      <text x="505" y="318" text-anchor="middle" font-size="12" font-weight="600" fill="#7c3aed" font-family="sans-serif">video-renderer 内部组合</text>
+
+      <!-- Legend -->
+      <line x1="30" y1="355" x2="710" y2="355" stroke="#e5e7eb" stroke-width="1"/>
+      <text x="30" y="372" font-size="11" fill="#6b7280" font-family="sans-serif">● 上层4个 Skill 可独立调用   ● 下层2个是 video-renderer 的内部子 Skill   ● 编排器串联全部</text>
+    </svg>
+  </div>
+
+  <h3>8.1 Skill 接口定义</h3>
+  <table>
+    <tr><th>Skill</th><th>输入</th><th>输出</th><th>依赖</th></tr>
+    <tr><td><strong>skill-script-validator</strong></td><td>script.json</td><td>校验结果 + 类型化数据</td><td>无</td></tr>
+    <tr><td><strong>skill-tts-synthesis</strong></td><td>旁白文本 + voice 配置</td><td>MP3 + word_boundaries</td><td>Python edge-tts</td></tr>
+    <tr><td><strong>skill-asset-manager</strong></td><td>素材需求列表</td><td>本地缓存文件路径</td><td>Pexels/Unsplash API Key</td></tr>
+    <tr><td><strong>skill-scene-render</strong></td><td>场景数据 + 模板 + 帧</td><td>React 组件渲染结果</td><td>Remotion + ECharts/Lottie</td></tr>
+    <tr><td><strong>skill-subtitle-gen</strong></td><td>词级时间戳 + 样式</td><td>动画字幕组件</td><td>Remotion spring/interpolate</td></tr>
+    <tr><td><strong>skill-video-renderer</strong></td><td>完整 script + 所有素材</td><td>MP4 文件</td><td>@remotion/renderer</td></tr>
+    <tr><td><strong>skill-pipeline-orchestrate</strong></td><td>script.json 路径</td><td>最终 MP4 路径</td><td>以上全部</td></tr>
+  </table>
+
+  <h3>8.2 Skill 组合关系</h3>
+  <pre><code><span style="color:#546e7a">// 编排器内部调用链</span>
+skill-pipeline-orchestrate
+  ├── skill-script-validator    <span style="color:#546e7a">// Step 0: 校验</span>
+  ├── skill-tts-synthesis       <span style="color:#546e7a">// Step 1: TTS</span>
+  ├── (内部) 时长计算            <span style="color:#546e7a">// Step 2</span>
+  ├── skill-asset-manager       <span style="color:#546e7a">// Step 3: 素材</span>
+  └── skill-video-renderer     <span style="color:#546e7a">// Step 4: 渲染</span>
+        ├── skill-scene-render  <span style="color:#546e7a">// 内部子 Skill</span>
+        └── skill-subtitle-gen <span style="color:#546e7a">// 内部子 Skill</span></code></pre>
+
+  <h3>8.3 独立调用示例</h3>
+  <pre><code><span style="color:#546e7a"># 仅生成 TTS 音频（调试语音用）</span>
+npx tsx scripts/tts.ts --scene 1 --text "你好世界" --voice zh-CN-YunxiNeural --rate "+10%"
+
+<span style="color:#546e7a"># 仅下载素材（预览图片用）</span>
+npx tsx scripts/assets.ts --query "galaxy stars" --source pexels
+
+<span style="color:#546e7a"># 仅校验 script.json</span>
+npx tsx scripts/validate.ts ./my_script.json
+
+<span style="color:#546e7a"># 完整流水线</span>
+npx tsx scripts/pipeline.ts ./my_script.json</code></pre>
+</section>
+
+<!-- 9. Visual Templates -->
+<section id="templates">
+  <h2>9. 视觉模板规格</h2>
+  <p>5 套模板的完整配色方案和风格定义。每个视频在 script.json 中选择一套模板，批量生产时轮换使用避免同质化。</p>
+
+  <h3>9.1 模板对比总览</h3>
+  <table>
+    <tr><th>模板</th><th>背景</th><th>主色</th><th>强调色</th><th>风格</th><th>适合主题</th></tr>
+    <tr><td>data_visual_style</td><td><span class="swatch" style="background:#0F1923"></span>#0F1923 深蓝黑</td><td><span class="swatch" style="background:#4A90D9"></span>#4A90D9</td><td><span class="swatch" style="background:#F5A623"></span>#F5A623</td><td>科技/数据感</td><td>物理/天文/数据</td></tr>
+    <tr><td>illustration_style</td><td><span class="swatch" style="background:#FFF8F0"></span>#FFF8F0 暖白</td><td><span class="swatch" style="background:#FF6B6B"></span>#FF6B6B</td><td><span class="swatch" style="background:#4ECDC4"></span>#4ECDC4</td><td>活泼/插画风</td><td>生物/化学/日常</td></tr>
+    <tr><td>cinematic_style</td><td><span class="swatch" style="background:#1A1A1A"></span>#1A1A1A 纯黑</td><td><span class="swatch" style="background:#D4AF37"></span>#D4AF37</td><td><span class="swatch" style="background:#C0392B"></span>#C0392B</td><td>电影/质感</td><td>历史/地理/自然</td></tr>
+    <tr><td>minimal_style</td><td><span class="swatch" style="background:#FFFFFF"></span>#FFFFFF 纯白</td><td><span class="swatch" style="background:#2C3E50"></span>#2C3E50</td><td><span class="swatch" style="background:#E74C3C"></span>#E74C3C</td><td>极简/专业</td><td>数学/逻辑/抽象</td></tr>
+    <tr><td>infographic_style</td><td><span class="swatch" style="background:#F0F4F8"></span>#F0F4F8 浅灰蓝</td><td><span class="swatch" style="background:#6C5CE7"></span>#6C5CE7</td><td><span class="swatch" style="background:#00CEC9"></span>#00CEC9</td><td>信息图/流程</td><td>技术/工程/流程</td></tr>
+  </table>
+
+  <h3>9.2 模板详细配置</h3>
+
+  <h4>DataVisualStyle（深色霓虹数据风）</h4>
+  <pre><code><span style="color:#c792ea">export const</span> <span style="color:#82aaff">DataVisualStyle</span>: TemplateConfig = {
+  name: <span style="color:#c3e88d">'data_visual_style'</span>,
+  bg_color: <span style="color:#c3e88d">'#0F1923'</span>,
+  text_color: <span style="color:#c3e88d">'#E0E7FF'</span>,
+  primary_color: <span style="color:#c3e88d">'#4A90D9'</span>,
+  accent_color: <span style="color:#c3e88d">'#F5A623'</span>,
+  chart_colors: [<span style="color:#c3e88d">'#4A90D9'</span>, <span style="color:#c3e88d">'#F5A623'</span>, <span style="color:#c3e88d">'#7C3AED'</span>, <span style="color:#c3e88d">'#10B981'</span>],
+  card_bg: <span style="color:#c3e88d">'rgba(255,255,255,0.05)'</span>,
+  card_border: <span style="color:#c3e88d">'rgba(74,144,217,0.3)'</span>,
+  title_font: <span style="color:#c3e88d">'Noto Sans SC Bold'</span>,
+  body_font: <span style="color:#c3e88d">'Noto Sans SC'</span>,
+  bg_pattern: <span style="color:#c3e88d">'grid'</span>,
+  corner_radius: 12,
+  shadow: <span style="color:#c3e88d">'0 4px 20px rgba(74,144,217,0.15)'</span>,
+};</code></pre>
+
+  <h4>IllustrationStyle（浅色插画风）</h4>
+  <pre><code><span style="color:#c792ea">export const</span> <span style="color:#82aaff">IllustrationStyle</span>: TemplateConfig = {
+  name: <span style="color:#c3e88d">'illustration_style'</span>,
+  bg_color: <span style="color:#c3e88d">'#FFF8F0'</span>,
+  text_color: <span style="color:#c3e88d">'#2D3436'</span>,
+  primary_color: <span style="color:#c3e88d">'#FF6B6B'</span>,
+  accent_color: <span style="color:#c3e88d">'#4ECDC4'</span>,
+  chart_colors: [<span style="color:#c3e88d">'#FF6B6B'</span>, <span style="color:#c3e88d">'#4ECDC4'</span>, <span style="color:#c3e88d">'#FFE66D'</span>, <span style="color:#c3e88d">'#A8E6CF'</span>],
+  card_bg: <span style="color:#c3e88d">'#FFFFFF'</span>,
+  card_border: <span style="color:#c3e88d">'#FFE0E0'</span>,
+  title_font: <span style="color:#c3e88d">'ZCOOL KuaiLe'</span>,
+  body_font: <span style="color:#c3e88d">'Noto Sans SC'</span>,
+  corner_radius: 20,
+  shadow: <span style="color:#c3e88d">'0 2px 12px rgba(255,107,107,0.1)'</span>,
+};</code></pre>
+
+  <h4>CinematicStyle（电影质感风）</h4>
+  <pre><code><span style="color:#c792ea">export const</span> <span style="color:#82aaff">CinematicStyle</span>: TemplateConfig = {
+  name: <span style="color:#c3e88d">'cinematic_style'</span>,
+  bg_color: <span style="color:#c3e88d">'#1A1A1A'</span>,
+  text_color: <span style="color:#c3e88d">'#F5F5F5'</span>,
+  primary_color: <span style="color:#c3e88d">'#D4AF37'</span>,
+  accent_color: <span style="color:#c3e88d">'#C0392B'</span>,
+  chart_colors: [<span style="color:#c3e88d">'#D4AF37'</span>, <span style="color:#c3e88d">'#C0392B'</span>, <span style="color:#c3e88d">'#3498DB'</span>, <span style="color:#c3e88d">'#7F8C8D'</span>],
+  card_bg: <span style="color:#c3e88d">'rgba(0,0,0,0.6)'</span>,
+  card_border: <span style="color:#c3e88d">'rgba(212,175,55,0.3)'</span>,
+  title_font: <span style="color:#c3e88d">'Noto Serif SC Bold'</span>,
+  body_font: <span style="color:#c3e88d">'Noto Serif SC'</span>,
+  corner_radius: 4,
+  shadow: <span style="color:#c3e88d">'0 4px 30px rgba(0,0,0,0.5)'</span>,
+};</code></pre>
+
+  <h4>MinimalStyle（极简白底风）</h4>
+  <pre><code><span style="color:#c792ea">export const</span> <span style="color:#82aaff">MinimalStyle</span>: TemplateConfig = {
+  name: <span style="color:#c3e88d">'minimal_style'</span>,
+  bg_color: <span style="color:#c3e88d">'#FFFFFF'</span>,
+  text_color: <span style="color:#c3e88d">'#2C3E50'</span>,
+  primary_color: <span style="color:#c3e88d">'#2C3E50'</span>,
+  accent_color: <span style="color:#c3e88d">'#E74C3C'</span>,
+  chart_colors: [<span style="color:#c3e88d">'#2C3E50'</span>, <span style="color:#c3e88d">'#E74C3C'</span>, <span style="color:#c3e88d">'#3498DB'</span>, <span style="color:#c3e88d">'#95A5A6'</span>],
+  card_bg: <span style="color:#c3e88d">'#F8F9FA'</span>,
+  card_border: <span style="color:#c3e88d">'#E5E7EB'</span>,
+  title_font: <span style="color:#c3e88d">'Noto Sans SC Bold'</span>,
+  body_font: <span style="color:#c3e88d">'Noto Sans SC'</span>,
+  corner_radius: 8,
+  shadow: <span style="color:#c3e88d">'none'</span>,
+};</code></pre>
+
+  <h4>InfographicStyle（信息图风）</h4>
+  <pre><code><span style="color:#c792ea">export const</span> <span style="color:#82aaff">InfographicStyle</span>: TemplateConfig = {
+  name: <span style="color:#c3e88d">'infographic_style'</span>,
+  bg_color: <span style="color:#c3e88d">'#F0F4F8'</span>,
+  text_color: <span style="color:#c3e88d">'#2D3748'</span>,
+  primary_color: <span style="color:#c3e88d">'#6C5CE7'</span>,
+  accent_color: <span style="color:#c3e88d">'#00CEC9'</span>,
+  chart_colors: [<span style="color:#c3e88d">'#6C5CE7'</span>, <span style="color:#c3e88d">'#00CEC9'</span>, <span style="color:#c3e88d">'#FD79A8'</span>, <span style="color:#c3e88d">'#FDCB6E'</span>],
+  card_bg: <span style="color:#c3e88d">'#FFFFFF'</span>,
+  card_border: <span style="color:#c3e88d">'#E2E8F0'</span>,
+  title_font: <span style="color:#c3e88d">'Noto Sans SC Bold'</span>,
+  body_font: <span style="color:#c3e88d">'Noto Sans SC'</span>,
+  bg_pattern: <span style="color:#c3e88d">'dots'</span>,
+  corner_radius: 12,
+  shadow: <span style="color:#c3e88d">'0 2px 8px rgba(108,92,231,0.1)'</span>,
+};</code></pre>
+
+  <h3>9.3 批量生产轮换策略</h3>
+  <pre><code><span style="color:#546e7a">// 批量生产时，按顺序轮换模板</span>
+<span style="color:#c792ea">const</span> templateRotation = [
+  <span style="color:#c3e88d">'data_visual_style'</span>,
+  <span style="color:#c3e88d">'illustration_style'</span>,
+  <span style="color:#c3e88d">'infographic_style'</span>,
+  <span style="color:#c3e88d">'cinematic_style'</span>,
+  <span style="color:#c3e88d">'minimal_style'</span>,
+];
+
+<span style="color:#546e7a">// 第 N 个视频使用 templateRotation[N % 5]</span>
+<span style="color:#546e7a">// 确保 5 个连续视频画面风格各不相同</span></code></pre>
+</section>
+
+<!-- 10. Configuration -->
+<section id="config">
+  <h2>10. 配置管理</h2>
+
+  <h3>10.1 环境变量 (<code>.env</code>)</h3>
+  <pre><code><span style="color:#546e7a"># TTS 配置</span>
+EDGE_TTS_DEFAULT_VOICE=zh-CN-YunxiNeural
+EDGE_TTS_DEFAULT_RATE=+10%
+
+<span style="color:#546e7a"># 素材 API Keys</span>
+PEXELS_API_KEY=your_pexels_key
+UNSPLASH_ACCESS_KEY=your_unsplash_key
+
+<span style="color:#546e7a"># AI 图片生成（可选）</span>
+STABILITY_API_KEY=your_stability_key
+
+<span style="color:#546e7a"># Remotion 配置</span>
+REMOTION_LICENSE_KEY=           <span style="color:#546e7a"># 团队>3人时需要</span>
+REMOTION_CONCURRENCY=2          <span style="color:#546e7a"># 渲染并发数</span>
+
+<span style="color:#546e7a"># 输出配置</span>
+OUTPUT_DIR=./output
+VIDEO_CODEC=h264
+VIDEO_QUALITY=18               <span style="color:#546e7a"># CRF 值，越低质量越高</span>
+RESOLUTION_WIDTH=1080
+RESOLUTION_HEIGHT=1920
+FPS=30</code></pre>
+
+  <h3>10.2 package.json 核心依赖</h3>
+  <pre><code>{
+  <span style="color:#c3e88d">"name"</span>: <span style="color:#c3e88d">"aiautovideo"</span>,
+  <span style="color:#c3e88d">"version"</span>: <span style="color:#c3e88d">"1.0.0"</span>,
+  <span style="color:#c3e88d">"scripts"</span>: {
+    <span style="color:#c3e88d">"dev"</span>: <span style="color:#c3e88d">"remotion studio"</span>,
+    <span style="color:#c3e88d">"render"</span>: <span style="color:#c3e88d">"tsx scripts/pipeline.ts"</span>,
+    <span style="color:#c3e88d">"tts"</span>: <span style="color:#c3e88d">"tsx scripts/tts.ts"</span>,
+    <span style="color:#c3e88d">"assets"</span>: <span style="color:#c3e88d">"tsx scripts/assets.ts"</span>,
+    <span style="color:#c3e88d">"validate"</span>: <span style="color:#c3e88d">"tsx scripts/validate.ts"</span>
+  },
+  <span style="color:#c3e88d">"dependencies"</span>: {
+    <span style="color:#c3e88d">"remotion"</span>: <span style="color:#c3e88d">"^4.0.0"</span>,
+    <span style="color:#c3e88d">"@remotion/cli"</span>: <span style="color:#c3e88d">"^4.0.0"</span>,
+    <span style="color:#c3e88d">"@remotion/renderer"</span>: <span style="color:#c3e88d">"^4.0.0"</span>,
+    <span style="color:#c3e88d">"@remotion/bundler"</span>: <span style="color:#c3e88d">"^4.0.0"</span>,
+    <span style="color:#c3e88d">"@remotion/transitions"</span>: <span style="color:#c3e88d">"^4.0.0"</span>,
+    <span style="color:#c3e88d">"@remotion/lottie"</span>: <span style="color:#c3e88d">"^4.0.0"</span>,
+    <span style="color:#c3e88d">"echarts"</span>: <span style="color:#c3e88d">"^5.5.0"</span>,
+    <span style="color:#c3e88d">"react"</span>: <span style="color:#c3e88d">"^18.0.0"</span>,
+    <span style="color:#c3e88d">"react-dom"</span>: <span style="color:#c3e88d">"^18.0.0"</span>
+  },
+  <span style="color:#c3e88d">"devDependencies"</span>: {
+    <span style="color:#c3e88d">"typescript"</span>: <span style="color:#c3e88d">"^5.4.0"</span>,
+    <span style="color:#c3e88d">"tsx"</span>: <span style="color:#c3e88d">"^4.0.0"</span>,
+    <span style="color:#c3e88d">"@types/react"</span>: <span style="color:#c3e88d">"^18.0.0"</span>
+  }
+}</code></pre>
+</section>
+
+<!-- 11. Deployment -->
+<section id="deployment">
+  <h2>11. 部署方案</h2>
+
+  <h3>11.1 环境要求</h3>
+  <table>
+    <tr><th>项目</th><th>最低要求</th><th>推荐</th></tr>
+    <tr><td>OS</td><td>macOS 12+ / Ubuntu 20+</td><td>macOS 14+ / Ubuntu 22+</td></tr>
+    <tr><td>Node.js</td><td>18.x</td><td>20.x LTS</td></tr>
+    <tr><td>Python</td><td>3.9</td><td>3.11+</td></tr>
+    <tr><td>Chrome</td><td>Remotion 自动安装 Headless Chrome</td><td>—</td></tr>
+    <tr><td>内存</td><td>4 GB</td><td>8 GB+</td></tr>
+    <tr><td>磁盘</td><td>2 GB（含依赖）</td><td>10 GB（含缓存素材）</td></tr>
+    <tr><td>GPU</td><td>不需要</td><td>不需要（CPU 渲染）</td></tr>
+  </table>
+
+  <h3>11.2 本地部署</h3>
+  <pre><code><span style="color:#546e7a"># 1. 克隆项目</span>
+git clone &lt;repo&gt; aiautovideo && cd aiautovideo
+
+<span style="color:#546e7a"># 2. 安装 Node 依赖</span>
+npm install
+
+<span style="color:#546e7a"># 3. 安装 Python 依赖</span>
+pip install edge-tts
+
+<span style="color:#546e7a"># 4. 配置环境变量</span>
+cp .env.example .env
+<span style="color:#546e7a"># 编辑 .env 填入 API Key</span>
+
+<span style="color:#546e7a"># 5. 启动 Remotion Studio（开发预览）</span>
+npm run dev
+
+<span style="color:#546e7a"># 6. 生成视频</span>
+npm run render ./scripts/my_video.json</code></pre>
+
+  <h3>11.3 Docker 部署</h3>
+  <pre><code><span style="color:#c792ea">FROM</span> node:20-slim
+
+<span style="color:#c792ea">RUN</span> apt-get update && apt-get install -y \
+    python3 python3-pip \
+    chromium \
+    fonts-noto-cjk \
+    && rm -rf /var/lib/apt/lists/*
+
+<span style="color:#c792ea">RUN</span> pip3 install edge-tts
+
+<span style="color:#c792ea">WORKDIR</span> /app
+<span style="color:#c792ea">COPY</span> package*.json ./
+<span style="color:#c792ea">RUN</span> npm ci --production
+
+<span style="color:#c792ea">COPY</span> . .
+<span style="color:#c792ea">RUN</span> npx remotion install-fonts
+
+<span style="color:#c792ea">ENV</span> PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+<span style="color:#c792ea">CMD</span> [<span style="color:#c3e88d">"npx"</span>, <span style="color:#c3e88d">"tsx"</span>, <span style="color:#c3e88d">"scripts/pipeline.ts"</span>]</code></pre>
+
+  <pre><code><span style="color:#546e7a"># docker-compose.yml</span>
+<span style="color:#c792ea">version:</span> <span style="color:#c3e88d">'3.8'</span>
+<span style="color:#c792ea">services:</span>
+  <span style="color:#82aaff">video-generator:</span>
+    <span style="color:#82aaff">build:</span> .
+    <span style="color:#82aaff">volumes:</span>
+      - ./scripts:/app/scripts
+      - ./output:/app/output
+      - ./templates:/app/templates
+      - ./assets:/app/assets
+    <span style="color:#82aaff">env_file:</span> .env
+    <span style="color:#82aaff">command:</span> npx tsx scripts/pipeline.ts /app/scripts/my_video.json</code></pre>
+
+  <pre><code><span style="color:#546e7a"># Docker 使用</span>
+docker compose up --build</code></pre>
+</section>
+
+<!-- 12. Roadmap -->
+<section id="roadmap">
+  <h2>12. 开发路线图</h2>
+  <p>分 4 个阶段，每阶段产出可验证的成果：</p>
+
+  <div class="phase">
+    <div class="phase-item">
+      <h4>Phase 1: 基础设施</h4>
+      <div class="duration">1-2 周</div>
+      <ul>
+        <li>项目初始化</li>
+        <li>TTS 模块（Python 脚本）</li>
+        <li>script.json 类型定义</li>
+        <li>脚本校验器</li>
+        <li>Remotion 项目骨架</li>
+        <li>1 个场景组件（TextCard）</li>
+        <li>基础字幕组件</li>
+      </ul>
+    </div>
+    <div class="phase-item">
+      <h4>Phase 2: 核心渲染</h4>
+      <div class="duration">2-3 周</div>
+      <ul>
+        <li>全部 5 个场景组件</li>
+        <li>ECharts SVG 集成</li>
+        <li>@remotion/lottie 集成</li>
+        <li>转场系统</li>
+        <li>字幕 4 种动画</li>
+        <li>流水线编排器</li>
+        <li>端到端跑通</li>
+      </ul>
+    </div>
+    <div class="phase-item">
+      <h4>Phase 3: 模板与素材</h4>
+      <div class="duration">1-2 周</div>
+      <ul>
+        <li>5 套视觉模板</li>
+        <li>素材管理器</li>
+        <li>Pexels/Unsplash 集成</li>
+        <li>素材缓存机制</li>
+        <li>Ken Burns 效果</li>
+        <li>叠加组件系统</li>
+      </ul>
+    </div>
+    <div class="phase-item">
+      <h4>Phase 4: 生产化</h4>
+      <div class="duration">1 周</div>
+      <ul>
+        <li>Docker 部署</li>
+        <li>批量生产脚本</li>
+        <li>模板轮换策略</li>
+        <li>错误处理与重试</li>
+        <li>渲染进度日志</li>
+        <li>README 文档</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>12.1 验收标准</h3>
+  <table>
+    <tr><th>阶段</th><th>验收标准</th></tr>
+    <tr><td>Phase 1</td><td>输入简单 script.json（2-3 场景），输出含 TTS 旁白 + 基础字幕的 MP4</td></tr>
+    <tr><td>Phase 2</td><td>输入完整 script.json（8-15 场景，含图表/动画），输出含转场 + 动画字幕的高质量 MP4</td></tr>
+    <tr><td>Phase 3</td><td>5 套模板可切换，素材自动获取，画面不重复</td></tr>
+    <tr><td>Phase 4</td><td>Docker 一键部署，批量生成 5 个不同模板的视频</td></tr>
+  </table>
+</section>
+
+<!-- Summary -->
+<section id="summary">
+  <h2>总结</h2>
+  <table>
+    <tr><th>维度</th><th>方案</th></tr>
+    <tr><td>视频框架</td><td>Remotion (React + TypeScript)</td></tr>
+    <tr><td>语音合成</td><td>edge-tts (Python) → MP3 + 词级时间戳</td></tr>
+    <tr><td>字幕动画</td><td>Remotion 原生组件 (spring + interpolate)，变色 + 跳动</td></tr>
+    <tr><td>画面渲染</td><td>5 种场景组件：TextCard / Chart / Animation / Image / Mixed</td></tr>
+    <tr><td>数据可视化</td><td>ECharts SVG 模式</td></tr>
+    <tr><td>动画</td><td>@remotion/lottie (Lottie JSON)</td></tr>
+    <tr><td>转场效果</td><td>@remotion/transitions (8 种类型)</td></tr>
+    <tr><td>反同质化</td><td>5 套视觉模板轮换 + 多素材源</td></tr>
+    <tr><td>素材来源</td><td>Pexels / Unsplash / AI 生成 / 本地 Lottie</td></tr>
+    <tr><td>视频编码</td><td>FFmpeg (Remotion 内置) → H.264 MP4</td></tr>
+    <tr><td>编排入口</td><td>Node.js CLI: <code>npm run render ./script.json</code></td></tr>
+    <tr><td>Skill 数量</td><td>6 个独立 Skill + 2 个子 Skill</td></tr>
+    <tr><td>部署方式</td><td>本地 / Docker</td></tr>
+  </table>
+
+  <div class="note">
+    <strong>下一步：</strong>方案确认后，按 Phase 1 开始编码实现。先搭建项目骨架、TTS 模块和基础场景组件，端到端跑通最小可用版本。
+  </div>
+</section>
+
+</main>
+</body>
+</html>

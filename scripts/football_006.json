@@ -1,0 +1,152 @@
+{
+  "video_id": "auto_mtjmqa17",
+  "title": "人类真的能预测未来吗？从7天天气预报到65%世界杯胜率",
+  "resolution": {
+    "width": 1080,
+    "height": 1920
+  },
+  "fps": 30,
+  "template": "data_visual_style",
+  "global_style": {
+    "font_family": "Noto Sans SC, sans-serif",
+    "primary_color": "#4A90D9",
+    "accent_color": "#F5A623",
+    "bg_color": "#0F1923",
+    "text_color": "#E0E7FF"
+  },
+  "voice": {
+    "provider": "edge-tts",
+    "voice_name": "zh-CN-YunxiNeural",
+    "rate": "+10%",
+    "pitch": "+0Hz",
+    "volume": "+0%"
+  },
+  "subtitle_style": {
+    "font_size": 42,
+    "font_family": "Noto Sans SC, sans-serif",
+    "color": "#FFFFFF",
+    "highlight_color": "#F5A623",
+    "stroke_color": "#000000",
+    "stroke_width": 3,
+    "animation": "bounce",
+    "position": "bottom",
+    "offset_y": 180,
+    "max_width": 900
+  },
+  "scenes": [
+    {
+      "scene_id": 1,
+      "narration": "天气预报最多准7天，凭什么AI敢说自己能预测世界杯？答案藏在一个你可能从没听过的词里：预测窗口。",
+      "duration": 13,
+      "visual": {
+        "type": "text_card",
+        "title": "多准7天，凭什么AI敢说自己能",
+        "subtitle": "预测窗口。",
+        "animation": "fade_in_zoom"
+      },
+      "transition_in": "fade",
+      "transition_out": "slide_left"
+    },
+    {
+      "scene_id": 2,
+      "narration": "爱德华·洛伦兹1963年在《Journal of the Atmospheric Sciences》上发表了一篇改变人类认知的论文。他发现，即使天气系统遵循完全确定的方程，初始条件差0.0001，两周后的结果就能差十万八千里。这就是蝴蝶效应的原始表述。它宣告了一个残酷的事实：混沌系统存在一个有限的“可预测时间窗口”，超出这个窗口，再强大的算力也无能为力。",
+      "duration": 42,
+      "visual": {
+        "type": "text_card",
+        "title": "爱德华·洛伦兹1963年在《J...",
+        "animation": "slide_up"
+      },
+      "transition_in": "slide_left",
+      "transition_out": "slide_left"
+    },
+    {
+      "scene_id": 3,
+      "narration": "天气预报的窗口大约是7天，这是因为大气系统的混沌程度极高。但足球比赛的混沌程度比天气低吗？不一定更低，但它的“有效预测维度”更集中。天气涉及无数空气分子的相互作用，而足球的核心变量虽然也多，但主要集中在22名球员、1个球、战术体系和历史数据这些可观测、可量化的维度上。AI不需要模拟每一个空气分子，它只需要抓住那些对结果影响最大的特征。",
+      "duration": 40,
+      "visual": {
+        "type": "animation",
+        "animation_source": "default"
+      },
+      "transition_in": "slide_left",
+      "transition_out": "slide_left"
+    },
+    {
+      "scene_id": 4,
+      "narration": "这就是为什么AI能在足球预测上做到65.7%，而在天气上只能做到7天。不是因为它更强，而是因为足球的“信噪比”更高。Opta每场比赛采集2000到3000条事件数据，球员身上29个骨骼关键点每秒更新50帧，这些数据构成了一个高密度信息场。AI在这个信息场里做模式识别，本质上是在混沌系统中寻找“慢变量”——那些变化相对缓慢、对结果影响较大的因素。",
+      "duration": 41,
+      "visual": {
+        "type": "chart",
+        "chart_type": "bar",
+        "data": {
+          "title": "这就是为什么AI能在足球预测上做到65",
+          "labels": [
+            "信噪比",
+            "每场比",
+            "条事件数",
+            "这些数",
+            "成了一个高密度",
+            "慢变量"
+          ],
+          "values": [
+            65,
+            7,
+            2000,
+            3000,
+            29,
+            50
+          ],
+          "y_axis_label": "数值"
+        },
+        "animation": "fade_in"
+      },
+      "transition_in": "slide_left",
+      "transition_out": "slide_left"
+    },
+    {
+      "scene_id": 5,
+      "narration": "但窗口依然存在。小组赛初期AI准确率只有43.8%，因为数据冷启动，模型还没积累足够的“现在”来推断“未来”。随着赛程推进，信息密度增加，准确率才爬升到64.5%。这说明AI的预测能力不是静态的，而是动态收敛的。它不像天气预报那样有一个固定的7天上限，而是随着信息积累不断延展自己的预测窗口。",
+      "duration": 35,
+      "visual": {
+        "type": "chart",
+        "chart_type": "bar",
+        "data": {
+          "title": "但窗口依然存在",
+          "labels": [
+            "小组赛初期",
+            "准确率"
+          ],
+          "values": [
+            43.8,
+            64.5
+          ],
+          "y_axis_label": "百分比 (%)"
+        },
+        "animation": "fade_in"
+      },
+      "transition_in": "slide_left",
+      "transition_out": "slide_left"
+    },
+    {
+      "scene_id": 6,
+      "narration": "当然，窗口之外依然是混沌。169次精确比分预测0次命中，24场平局只猜对11场，这些都是窗口的边界。AI能告诉你“西班牙更可能赢”，但不能告诉你“西班牙2:1赢”。前者在窗口内，后者在窗口外。海森堡那句话依然有效：“我们不能知道现在的所有细节，这是一种原则性的事情。”\n所以人类真的能预测未来吗？答案是：能在有限窗口内做概率性预测，不能在窗口外做确定性预言。AI把这个窗口推到了人类前所未有的宽度，但它没有、也不可能消除窗口之外的黑暗。",
+      "duration": 51,
+      "visual": {
+        "type": "text_card",
+        "title": "”\n所以人类真的能预测未来吗",
+        "animation": "slide_up"
+      },
+      "transition_in": "slide_left",
+      "transition_out": "fade"
+    }
+  ],
+  "outro": {
+    "duration": 8,
+    "narration": "那么问题来了：既然AI的预测能力依赖于信息积累，那它和我们大脑的思考方式究竟有什么同构之处？神经网络号称仿脑，但它到底抄对了多少，又抄漏了什么？这个话题，比预测本身更接近智能的本质。",
+    "visual": {
+      "type": "cta_card",
+      "text": "关注我，了解更多科普知识",
+      "animation": "fade_in_zoom"
+    },
+    "transition_in": "fade"
+  }
+}

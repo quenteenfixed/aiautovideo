@@ -1,0 +1,185 @@
+{
+    "video_id": "aiproject-football-001",
+    "title": "人类真的能预测未来吗？从7天天气预报到65%世界杯胜率",
+    "resolution": { "width": 1080, "height": 1920 },
+    "fps": 30,
+    "template": "data_visual_style",
+    "global_style": {
+        "font_family": "Noto Sans SC, sans-serif",
+        "primary_color": "#4A90D9",
+        "accent_color": "#F5A623",
+        "bg_color": "#0F1923",
+        "text_color": "#E0E7FF"
+    },
+    "voice": {
+        "provider": "edge-tts",
+        "voice_name": "zh-CN-YunyangNeural",
+        "rate": "+28%",
+        "pitch": "+0Hz",
+        "volume": "+25%"
+    },
+    "subtitle_style": {
+        "font_size": 42,
+        "font_family": "Noto Sans SC, sans-serif",
+        "color": "#FFFFFF",
+        "highlight_color": "#F5A623",
+        "stroke_color": "#000000",
+        "stroke_width": 3,
+        "animation": "bounce",
+        "position": "bottom",
+        "offset_y": 180,
+        "max_width": 900
+    },
+    "scenes": [{
+            "scene_id": 1,
+            "narration": "天气预报最多准7天，凭什么AI敢说自己能预测世界杯？答案藏在一个词里：预测窗口。",
+            "duration": 9,
+            "visual": {
+                "type": "text_card",
+                "title": "预测窗口",
+                "subtitle": "天气预报 vs 世界杯",
+                "animation": "fade_in_zoom"
+            },
+            "transition_in": "fade",
+            "transition_out": "slide_left"
+        },
+        {
+            "scene_id": 2,
+            "narration": "洛伦兹1963年发现，初始条件差0.0001，两周后结果差十万八千里。混沌系统存在有限的可预测时间窗口。",
+            "duration": 10,
+            "visual": {
+                "type": "text_card",
+                "title": "蝴蝶效应",
+                "subtitle": "混沌的启示",
+                "animation": "fade_in"
+            },
+            "transition_in": "slide_left",
+            "transition_out": "slide_up"
+        },
+        {
+            "scene_id": 3,
+            "narration": "天气预报的窗口约7天，因为大气混沌极高。但足球的变量更集中：22名球员、战术、历史数据，这些都可量化。",
+            "duration": 10,
+            "visual": {
+                "type": "text_card",
+                "title": "足球 vs 天气",
+                "subtitle": "变量更集中",
+                "animation": "fade_in"
+            },
+            "transition_in": "slide_up",
+            "transition_out": "zoom_in"
+        },
+        {
+            "scene_id": 4,
+            "narration": "AI在足球预测上做到65.7%，在天气上只有7天。不是因为AI更强，而是足球的「信噪比」更高。",
+            "duration": 9,
+            "visual": {
+                "type": "text_card",
+                "title": "信噪比更高",
+                "subtitle": "65.7% vs 7天",
+                "animation": "fade_in"
+            },
+            "transition_in": "zoom_in",
+            "transition_out": "slide_left"
+        },
+        {
+            "scene_id": 5,
+            "narration": "Opta每场采集两三千条事件数据，球员骨骼点每秒更新50帧。AI在高密度信息场里寻找「慢变量」。",
+            "duration": 10,
+            "visual": {
+                "type": "text_card",
+                "title": "慢变量",
+                "subtitle": "从海量数据中提炼",
+                "animation": "fade_in"
+            },
+            "transition_in": "slide_left",
+            "transition_out": "slide_up"
+        },
+        {
+            "scene_id": 6,
+            "narration": "小组赛初期AI准确率只有43.8%，数据冷启动。随着赛程推进，信息积累，准确率爬升到64.5%。",
+            "duration": 10,
+            "visual": {
+                "type": "chart",
+                "chart_type": "line",
+                "data": {
+                    "title": "AI预测准确率变化",
+                    "labels": ["小组初期", "赛程中段", "整体"],
+                    "values": [43.8, 64.5, 65.7],
+                    "y_axis_label": "准确率 (%)"
+                },
+                "animation": "fade_in",
+                "components": [{
+                    "type": "badge",
+                    "text": "65.7%命中率",
+                    "position": "top_center",
+                    "color": "#F5A623"
+                }]
+            },
+            "transition_in": "slide_up",
+            "transition_out": "zoom_in"
+        },
+        {
+            "scene_id": 7,
+            "narration": "但窗口之外仍是混沌。169次精确比分预测0次命中，24场平局只猜对11场，这些是窗口的边界。",
+            "duration": 10,
+            "visual": {
+                "type": "text_card",
+                "title": "窗口边界",
+                "subtitle": "精确比分 0/169",
+                "animation": "fade_in"
+            },
+            "transition_in": "zoom_in",
+            "transition_out": "slide_left"
+        },
+        {
+            "scene_id": 8,
+            "narration": "AI能告诉你「西班牙更可能赢」，但不能告诉你「西班牙2:1赢」。前者在窗口内，后者在窗口外。",
+            "duration": 9,
+            "visual": {
+                "type": "text_card",
+                "title": "窗口内外",
+                "subtitle": "概率 vs 确定",
+                "animation": "fade_in"
+            },
+            "transition_in": "slide_left",
+            "transition_out": "slide_up"
+        },
+        {
+            "scene_id": 9,
+            "narration": "海森堡说：「我们不能知道现在的所有细节，这是一种原则性的事情。」窗口之外，依然不可知。",
+            "duration": 9,
+            "visual": {
+                "type": "text_card",
+                "title": "原则性限制",
+                "subtitle": "海森堡的回响",
+                "animation": "fade_in"
+            },
+            "transition_in": "slide_up",
+            "transition_out": "slide_left"
+        },
+        {
+            "scene_id": 10,
+            "narration": "所以人类能在有限窗口内做概率性预测，不能在窗口外做确定性预言。AI推宽了窗口，但未消除黑暗。",
+            "duration": 10,
+            "visual": {
+                "type": "text_card",
+                "title": "有限预测",
+                "subtitle": "概率而非确定",
+                "animation": "fade_in"
+            },
+            "transition_in": "slide_left",
+            "transition_out": "slide_up"
+        }
+    ],
+    "outro": {
+        "duration": 8,
+        "narration": "AI与人类大脑的思考方式有何同构？神经网络抄对了多少，又抄漏了什么？下期，我们接近智能的本质。",
+        "visual": {
+            "type": "cta_card",
+            "text": "下期：智能的本质",
+            "animation": "fade_in_zoom"
+        },
+        "transition_in": "slide_up"
+    }
+}
